@@ -135,6 +135,7 @@ const uk = {
     madeWith: 'Зроблено з 💚 для рослин',
   },
   light: { shade: 'Тінь', partial: 'Напівтінь', direct: 'Сонце' },
+  common: { back: 'Назад', cancel: 'Скасувати', delete: 'Видалити', deleteRoom: 'Видалити кімнату' },
 };
 
 const en: Translations = {
@@ -268,6 +269,7 @@ const en: Translations = {
     madeWith: 'Made with 💚 for plants',
   },
   light: { shade: 'Shade', partial: 'Partial', direct: 'Sun' },
+  common: { back: 'Back', cancel: 'Cancel', delete: 'Delete', deleteRoom: 'Delete room' },
 };
 
 const de: Translations = {
@@ -401,6 +403,7 @@ const de: Translations = {
     madeWith: 'Gemacht mit 💚 für Pflanzen',
   },
   light: { shade: 'Schatten', partial: 'Halbschatten', direct: 'Sonne' },
+  common: { back: 'Zurück', cancel: 'Abbrechen', delete: 'Löschen', deleteRoom: 'Zimmer löschen' },
 };
 
 const ru: Translations = {
@@ -534,6 +537,7 @@ const ru: Translations = {
     madeWith: 'Сделано с 💚 для растений',
   },
   light: { shade: 'Тень', partial: 'Полутень', direct: 'Солнце' },
+  common: { back: 'Назад', cancel: 'Отмена', delete: 'Удалить', deleteRoom: 'Удалить комнату' },
 };
 
 export const translations: Record<Language, Translations> = { uk, en, de, ru };

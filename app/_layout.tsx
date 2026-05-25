@@ -25,6 +25,7 @@ export default function RootLayout() {
           headerStyle: { backgroundColor: colors.header },
           headerTintColor: colors.text,
           headerTitleStyle: { fontWeight: '700' },
+          headerBackTitle: t('common.back'),
           contentStyle: { backgroundColor: colors.background },
           animation: 'slide_from_right',
         }}

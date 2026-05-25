@@ -1,5 +1,4 @@
-// app/(tabs)/index.tsx
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,12 +7,14 @@ import {
   StyleSheet,
   Pressable,
   Image,
+  Alert,
 } from 'react-native';
+import { Swipeable } from 'react-native-gesture-handler';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { useAppStore } from '../../store/useAppStore';
-import { Plant } from '../../store/types';
+import { Plant, Room } from '../../store/types';
 import { getPlantDisplayName } from '../../store/useAppStore';
 import { PlantCard } from '../../components/PlantCard';
 import { useNotifications } from '../../hooks/useNotifications';
@@ -41,6 +42,8 @@ export default function HomeScreen() {
   const plants = useAppStore((s) => s.plants);
   const { colors } = useTheme();
   const { t } = useT();
+  const deleteRoom = useAppStore((s) => s.deleteRoom);
+  const swipeableRefs = useRef<Map<string, Swipeable>>(new Map());
 
   const [selectedPlant, setSelectedPlant] = useState<Plant | null>(null);
   const [freqFilter, setFreqFilter] = useState<FrequencyFilter>('all');
@@ -74,6 +77,28 @@ export default function HomeScreen() {
 
   const handlePlantPress = useCallback((plant: Plant) => setSelectedPlant(plant), []);
   const handleCloseCard = useCallback(() => setSelectedPlant(null), []);
+
+  const handleDeleteRoom = useCallback((room: Room) => {
+    const roomPlants = plants.filter((p) => p.roomId === room.id);
+    Alert.alert(
+      t('room.deleteTitle'),
+      roomPlants.length > 0
+        ? t('room.deleteWithPlants', { name: room.name, count: roomPlants.length })
+        : t('room.deleteEmpty', { name: room.name }),
+      [
+        {
+          text: t('common.cancel'),
+          style: 'cancel',
+          onPress: () => swipeableRefs.current.get(room.id)?.close(),
+        },
+        {
+          text: t('common.delete'),
+          style: 'destructive',
+          onPress: () => deleteRoom(room.id),
+        },
+      ]
+    );
+  }, [plants, t, deleteRoom]);
 
   const isFiltered = freqFilter !== 'all' || speciesFilter !== null;
 
@@ -152,8 +177,32 @@ export default function HomeScreen() {
         )}
 
         {/* Кімнати з рослинами */}
-        {filteredPlantsByRoom.map(({ room, plants: roomPlants }, index) => (
-          <Animated.View key={room.id} entering={FadeInDown.delay(index * 80).springify()} style={s.roomSection}>
+        {filteredPlantsByRoom.map(({ room, plants: roomPlants }, index) => {
+          const renderRightActions = () => (
+            <TouchableOpacity
+              style={s.swipeDeleteBtn}
+              onPress={() => handleDeleteRoom(room)}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="trash" size={24} color="#fff" />
+              <Text style={s.swipeDeleteText}>{t('common.deleteRoom')}</Text>
+            </TouchableOpacity>
+          );
+
+          return (
+          <Swipeable
+            key={room.id}
+            ref={(ref) => {
+              if (ref) swipeableRefs.current.set(room.id, ref);
+              else swipeableRefs.current.delete(room.id);
+            }}
+            renderRightActions={renderRightActions}
+            overshootRight={false}
+            friction={2}
+            rightThreshold={60}
+            onSwipeableOpen={() => handleDeleteRoom(room)}
+          >
+          <Animated.View entering={FadeInDown.delay(index * 80).springify()} style={s.roomSection}>
             <View style={s.roomHeader}>
               <Pressable style={s.roomTitleRow} onPress={() => router.push(`/room/${room.id}`)}>
                 <Text style={s.roomEmoji}>{room.emoji}</Text>
@@ -187,14 +236,38 @@ export default function HomeScreen() {
               ))}
             </ScrollView>
           </Animated.View>
-        ))}
+          </Swipeable>
+          );
+        })}
 
         {/* Кімнати без рослин (якщо фільтр не активний) */}
         {!isFiltered && rooms.map((room, index) => {
           const roomPlants = plants.filter((p) => p.roomId === room.id);
           if (roomPlants.length > 0) return null;
+          const renderRightActionsEmpty = () => (
+            <TouchableOpacity
+              style={s.swipeDeleteBtn}
+              onPress={() => handleDeleteRoom(room)}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="trash" size={24} color="#fff" />
+              <Text style={s.swipeDeleteText}>{t('common.deleteRoom')}</Text>
+            </TouchableOpacity>
+          );
           return (
-            <Animated.View key={room.id} entering={FadeInDown.delay(index * 80).springify()} style={s.roomSection}>
+            <Swipeable
+              key={room.id}
+              ref={(ref) => {
+                if (ref) swipeableRefs.current.set(room.id, ref);
+                else swipeableRefs.current.delete(room.id);
+              }}
+              renderRightActions={renderRightActionsEmpty}
+              overshootRight={false}
+              friction={2}
+              rightThreshold={60}
+              onSwipeableOpen={() => handleDeleteRoom(room)}
+            >
+            <Animated.View entering={FadeInDown.delay(index * 80).springify()} style={s.roomSection}>
               <View style={s.roomHeader}>
                 <Pressable style={s.roomTitleRow} onPress={() => router.push(`/room/${room.id}`)}>
                   <Text style={s.roomEmoji}>{room.emoji}</Text>
@@ -217,6 +290,7 @@ export default function HomeScreen() {
                 <Text style={s.emptyRoomText}>{t('home.addFirstPlant')}</Text>
               </TouchableOpacity>
             </Animated.View>
+            </Swipeable>
           );
         })}
 
@@ -297,5 +371,20 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderWidth: 2, borderColor: colors.border, borderStyle: 'dashed',
     },
     addRoomBtnText: { color: colors.primaryLight, fontSize: 15, fontWeight: '600' },
+    swipeDeleteBtn: {
+      backgroundColor: '#ef4444',
+      justifyContent: 'center',
+      alignItems: 'center',
+      width: 90,
+      borderRadius: 20,
+      marginLeft: 8,
+      gap: 4,
+    },
+    swipeDeleteText: {
+      color: '#fff',
+      fontSize: 10,
+      fontWeight: '700',
+      textAlign: 'center',
+    },
   });
 }
