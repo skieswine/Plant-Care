@@ -20,11 +20,11 @@ import { useAppStore } from '../../store/useAppStore';
 import { LightLevel } from '../../store/types';
 import { LightLevelIcon } from '../../components/LightLevelIcon';
 import { useNotifications } from '../../hooks/useNotifications';
-import { PLANT_SPECIES } from '../../constants/plantSpecies';
+import { getPlantSpecies } from '../../constants/plantSpecies';
 import { useTheme } from '../../hooks/useTheme';
 import { useT } from '../../hooks/useT';
 
-const POPULAR_SPECIES = PLANT_SPECIES;
+
 
 export default function AddPlantScreen() {
   const router = useRouter();
@@ -33,8 +33,9 @@ export default function AddPlantScreen() {
   const rooms = useAppStore((s) => s.rooms);
   const { scheduleForNewPlant } = useNotifications();
   const { colors } = useTheme();
-  const { t } = useT();
+  const { t, language } = useT();
 
+  const POPULAR_SPECIES = getPlantSpecies(language);
   const [name, setName] = useState('');
   const [species, setSpecies] = useState('');
   const [customSpecies, setCustomSpecies] = useState('');

@@ -23,6 +23,7 @@ import { LightLevelIcon } from './LightLevelIcon';
 import { formatDate, formatRelativeDate } from '../utils/dateUtils';
 import { useTheme } from '../hooks/useTheme';
 import { useT } from '../hooks/useT';
+import { translateSpecies } from '../constants/plantSpecies';
 
 type Tab = 'info' | 'history' | 'notes';
 
@@ -142,7 +143,7 @@ export function PlantCard({ plant, onClose }: Props) {
             <View style={styles.headerInfo}>
               <Text style={styles.plantName}>{getPlantDisplayName(plant)}</Text>
               {plant.species && plant.name && (
-                <Text style={styles.speciesLabel}>🌿 {plant.species}</Text>
+                <Text style={styles.speciesLabel}>🌿 {translateSpecies(plant.species, language)}</Text>
               )}
               <LightLevelIcon level={plant.lightLevel} showLabel />
               <CountdownBadge nextWateringDate={plant.nextWateringDate} />
@@ -196,7 +197,7 @@ export function PlantCard({ plant, onClose }: Props) {
           {/* Вкладка: Інфо */}
           {activeTab === 'info' && (
             <View style={styles.tabContent}>
-              {plant.species && <InfoRow icon="leaf" label={t('plant.species_info')} value={plant.species} colors={colors} />}
+              {plant.species && <InfoRow icon="leaf" label={t('plant.species_info')} value={translateSpecies(plant.species, language)} colors={colors} />}
               <InfoRow icon="calendar-outline" label={t('plant.wateringIntervalLabel')} value={`${plant.wateringIntervalDays} ${t('plant.daysUnit')}`} colors={colors} />
               <InfoRow icon="water-outline" label={t('plant.lastWatered')} value={formatDate(plant.lastWateredDate, language)} colors={colors} />
               <InfoRow icon="alarm-outline" label={t('plant.nextWatering')} value={formatDate(plant.nextWateringDate, language)} colors={colors} />

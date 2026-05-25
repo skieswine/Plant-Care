@@ -1,9 +1,9 @@
 // app/(tabs)/calendar.tsx
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { format } from 'date-fns';
-import { uk } from 'date-fns/locale';
+import { uk, enUS, de, ru } from 'date-fns/locale';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '../../store/useAppStore';
 import { getPlantDisplayName } from '../../store/useAppStore';
@@ -11,28 +11,51 @@ import { CountdownBadge } from '../../components/CountdownBadge';
 import { useTheme } from '../../hooks/useTheme';
 import { useT } from '../../hooks/useT';
 
-// Українська локаль для календаря
+// ── Locales for react-native-calendars ──────────────────────────
 LocaleConfig.locales['uk'] = {
-  monthNames: [
-    'Січень','Лютий','Березень','Квітень','Травень','Червень',
-    'Липень','Серпень','Вересень','Жовтень','Листопад','Грудень',
-  ],
-  monthNamesShort: [
-    'Січ','Лют','Бер','Кві','Тра','Чер',
-    'Лип','Сер','Вер','Жов','Лис','Гру',
-  ],
+  monthNames: ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'],
+  monthNamesShort: ['Січ','Лют','Бер','Кві','Тра','Чер','Лип','Сер','Вер','Жов','Лис','Гру'],
   dayNames: ['Неділя','Понеділок','Вівторок','Середа','Четвер','П\'ятниця','Субота'],
   dayNamesShort: ['Нд','Пн','Вт','Ср','Чт','Пт','Сб'],
   today: 'Сьогодні',
 };
+LocaleConfig.locales['en'] = {
+  monthNames: ['January','February','March','April','May','June','July','August','September','October','November','December'],
+  monthNamesShort: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+  dayNames: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+  dayNamesShort: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+  today: 'Today',
+};
+LocaleConfig.locales['de'] = {
+  monthNames: ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],
+  monthNamesShort: ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'],
+  dayNames: ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'],
+  dayNamesShort: ['So','Mo','Di','Mi','Do','Fr','Sa'],
+  today: 'Heute',
+};
+LocaleConfig.locales['ru'] = {
+  monthNames: ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'],
+  monthNamesShort: ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'],
+  dayNames: ['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'],
+  dayNamesShort: ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'],
+  today: 'Сегодня',
+};
 LocaleConfig.defaultLocale = 'uk';
+
+const dateFnsLocales: Record<string, Locale> = { uk, en: enUS, de, ru };
 
 export default function CalendarScreen() {
   const plants = useAppStore((s) => s.plants);
   const getWateringEvents = useAppStore((s) => s.getWateringEventsForCalendar);
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const { colors, isDark } = useTheme();
-  const { t } = useT();
+  const { t, language } = useT();
+
+  // Switch calendar locale when language changes
+  useEffect(() => {
+    LocaleConfig.defaultLocale = language;
+  }, [language]);
+
 
   const markedDates = useMemo(() => {
     const events = getWateringEvents();
@@ -133,7 +156,7 @@ export default function CalendarScreen() {
       {/* Деталі вибраного дня */}
       <View style={[styles.dayDetails, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
         <Text style={[styles.dayTitle, { color: colors.text }]}>
-          {format(new Date(selectedDate), "d MMMM yyyy", { locale: uk })}
+          {format(new Date(selectedDate), "d MMMM yyyy", { locale: dateFnsLocales[language] })}
         </Text>
 
         {plantsForDate.length > 0 && (
