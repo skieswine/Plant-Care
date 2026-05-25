@@ -5,11 +5,11 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#f0faf5"
+      "backgroundColor": "#1a3a2a"
     },
     "scheme": "plantcare",
     "plugins": [
@@ -40,9 +40,8 @@
     ],
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "backgroundColor": "#f0faf5"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1a3a2a"
       },
       "package": "com.plantcare.app",
       "permissions": [
