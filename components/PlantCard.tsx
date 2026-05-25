@@ -21,6 +21,8 @@ import { WateringAnimation } from './WateringAnimation';
 import { CountdownBadge } from './CountdownBadge';
 import { LightLevelIcon } from './LightLevelIcon';
 import { formatDate, formatRelativeDate } from '../utils/dateUtils';
+import { useTheme } from '../hooks/useTheme';
+import { useT } from '../hooks/useT';
 
 type Tab = 'info' | 'history' | 'notes';
 
@@ -36,6 +38,8 @@ export function PlantCard({ plant, onClose }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('info');
   const [noteText, setNoteText] = useState('');
   const [showWateringAnim, setShowWateringAnim] = useState(false);
+  const { colors } = useTheme();
+  const { t, language } = useT();
 
   const addNote = useAppStore((s) => s.addNote);
   const deleteNote = useAppStore((s) => s.deleteNote);
@@ -61,15 +65,19 @@ export function PlantCard({ plant, onClose }: Props) {
       if (!plant) return;
       const displayName = getPlantDisplayName(plant);
       Alert.alert(
-        'Відкласти полив',
-        `Відкласти полив ${displayName} на ${days} ${days === 1 ? 'день' : 'дні'}?`,
+        t('plant.postponeTitle'),
+        t('plant.postponeMessage', {
+          name: displayName,
+          days,
+          unit: days === 1 ? t('plant.postponeUnit1') : t('plant.postponeUnit2'),
+        }),
         [
-          { text: 'Скасувати', style: 'cancel' },
-          { text: 'Відкласти', onPress: () => handlePostpone(plant.id, days) },
+          { text: t('plant.cancel'), style: 'cancel' },
+          { text: t('plant.postponeTitle'), onPress: () => handlePostpone(plant.id, days) },
         ]
       );
     },
-    [plant, handlePostpone]
+    [plant, handlePostpone, t]
   );
 
   const onAddNote = useCallback(() => {
@@ -82,12 +90,12 @@ export function PlantCard({ plant, onClose }: Props) {
     if (!plant) return;
     const displayName = getPlantDisplayName(plant);
     Alert.alert(
-      'Видалити рослину',
-      `Видалити "${displayName}"? Цю дію неможливо скасувати.`,
+      t('plant.deleteTitle'),
+      t('plant.deleteMessage', { name: displayName }),
       [
-        { text: 'Скасувати', style: 'cancel' },
+        { text: t('plant.cancel'), style: 'cancel' },
         {
-          text: 'Видалити',
+          text: t('plant.delete'),
           style: 'destructive',
           onPress: () => {
             deletePlant(plant.id);
@@ -96,7 +104,7 @@ export function PlantCard({ plant, onClose }: Props) {
         },
       ]
     );
-  }, [plant, deletePlant, onClose]);
+  }, [plant, deletePlant, onClose, t]);
 
   if (!plant) return null;
 
@@ -115,7 +123,7 @@ export function PlantCard({ plant, onClose }: Props) {
         snapPoints={snapPoints}
         onChange={handleSheetChanges}
         enablePanDownToClose
-        backgroundStyle={styles.sheetBackground}
+        backgroundStyle={[styles.sheetBackground, { backgroundColor: colors.surface }]}
         handleIndicatorStyle={styles.handleIndicator}
       >
         <BottomSheetScrollView
@@ -154,32 +162,24 @@ export function PlantCard({ plant, onClose }: Props) {
 
           {/* Кнопки дій */}
           <View style={styles.actionsRow}>
-            <TouchableOpacity style={styles.waterBtn} onPress={onWater} activeOpacity={0.8}>
+            <TouchableOpacity style={[styles.waterBtn, { backgroundColor: colors.primary }]} onPress={onWater} activeOpacity={0.8}>
               <Ionicons name="water" size={20} color="#fff" />
-              <Text style={styles.waterBtnText}>Полити зараз 💧</Text>
+              <Text style={styles.waterBtnText}>{t('plant.water')}</Text>
             </TouchableOpacity>
             <View style={styles.postponeGroup}>
-              <TouchableOpacity
-                style={styles.postponeBtn}
-                onPress={() => onPostpone(1)}
-                activeOpacity={0.8}
-              >
+              <TouchableOpacity style={styles.postponeBtn} onPress={() => onPostpone(1)} activeOpacity={0.8}>
                 <Ionicons name="time-outline" size={16} color="#a07850" />
-                <Text style={styles.postponeBtnText}>+1 день</Text>
+                <Text style={styles.postponeBtnText}>{t('plant.postpone1')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.postponeBtn}
-                onPress={() => onPostpone(2)}
-                activeOpacity={0.8}
-              >
+              <TouchableOpacity style={styles.postponeBtn} onPress={() => onPostpone(2)} activeOpacity={0.8}>
                 <Ionicons name="time-outline" size={16} color="#a07850" />
-                <Text style={styles.postponeBtnText}>+2 дні</Text>
+                <Text style={styles.postponeBtnText}>{t('plant.postpone2')}</Text>
               </TouchableOpacity>
             </View>
           </View>
 
           {/* Вкладки */}
-          <View style={styles.tabs}>
+          <View style={[styles.tabs, { borderBottomColor: colors.borderLight }]}>
             {(['info', 'history', 'notes'] as Tab[]).map((tab) => (
               <TouchableOpacity
                 key={tab}
@@ -187,7 +187,7 @@ export function PlantCard({ plant, onClose }: Props) {
                 onPress={() => setActiveTab(tab)}
               >
                 <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                  {tab === 'info' ? '🌿 Інфо' : tab === 'history' ? '📋 Журнал' : '📝 Нотатки'}
+                  {tab === 'info' ? t('plant.tabInfo') : tab === 'history' ? t('plant.tabHistory') : t('plant.tabNotes')}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -196,11 +196,11 @@ export function PlantCard({ plant, onClose }: Props) {
           {/* Вкладка: Інфо */}
           {activeTab === 'info' && (
             <View style={styles.tabContent}>
-              {plant.species && <InfoRow icon="leaf" label="Вид" value={plant.species} />}
-              <InfoRow icon="calendar-outline" label="Інтервал поливу" value={`${plant.wateringIntervalDays} днів`} />
-              <InfoRow icon="water-outline" label="Останній полив" value={formatDate(plant.lastWateredDate)} />
-              <InfoRow icon="alarm-outline" label="Наступний полив" value={formatDate(plant.nextWateringDate)} />
-              <InfoRow icon="leaf-outline" label="Додано" value={formatDate(plant.createdAt)} />
+              {plant.species && <InfoRow icon="leaf" label={t('plant.species_info')} value={plant.species} colors={colors} />}
+              <InfoRow icon="calendar-outline" label={t('plant.wateringIntervalLabel')} value={`${plant.wateringIntervalDays} ${t('plant.daysUnit')}`} colors={colors} />
+              <InfoRow icon="water-outline" label={t('plant.lastWatered')} value={formatDate(plant.lastWateredDate, language)} colors={colors} />
+              <InfoRow icon="alarm-outline" label={t('plant.nextWatering')} value={formatDate(plant.nextWateringDate, language)} colors={colors} />
+              <InfoRow icon="leaf-outline" label={t('plant.addedDate')} value={formatDate(plant.createdAt, language)} colors={colors} />
             </View>
           )}
 
@@ -208,32 +208,32 @@ export function PlantCard({ plant, onClose }: Props) {
           {activeTab === 'history' && (
             <View style={styles.tabContent}>
               {plant.wateringHistory.length === 0 ? (
-                <Text style={styles.emptyText}>Ще не поливали 🌵</Text>
+                <Text style={[styles.emptyText, { color: colors.textMuted }]}>{t('plant.noHistory')}</Text>
               ) : (
                 plant.wateringHistory.map((record) => (
-                  <View key={record.id} style={styles.historyItem}>
+                  <View key={record.id} style={[styles.historyItem, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
                     <Ionicons
                       name={record.postponed ? 'time-outline' : 'water'}
                       size={18}
-                      color={record.postponed ? '#f59e0b' : '#4db88a'}
+                      color={record.postponed ? colors.warning : colors.primary}
                     />
                     <View style={{ flex: 1, marginLeft: 10 }}>
-                      <Text style={styles.historyLabel}>
+                      <Text style={[styles.historyLabel, { color: colors.text }]}>
                         {record.postponed
-                          ? `Відкладено на ${record.postponedDays} дн.`
-                          : 'Полив 💧'}
+                          ? t('plant.postponed', { days: record.postponedDays ?? '' })
+                          : t('plant.watered')}
                       </Text>
-                      <Text style={styles.historyDate}>{formatRelativeDate(record.date)}</Text>
+                      <Text style={[styles.historyDate, { color: colors.textMuted }]}>{formatRelativeDate(record.date, language)}</Text>
                     </View>
                     <TouchableOpacity
                       onPress={() =>
                         Alert.alert(
-                          'Видалити запис?',
-                          'Цей запис буде видалено з журналу.',
+                          t('plant.deleteRecord'),
+                          t('plant.deleteRecordMsg'),
                           [
-                            { text: 'Скасувати', style: 'cancel' },
+                            { text: t('plant.cancel'), style: 'cancel' },
                             {
-                              text: 'Видалити',
+                              text: t('plant.delete'),
                               style: 'destructive',
                               onPress: () => deleteWateringRecord(plant.id, record.id),
                             },
@@ -242,7 +242,7 @@ export function PlantCard({ plant, onClose }: Props) {
                       }
                       style={styles.historyDeleteBtn}
                     >
-                      <Ionicons name="close-circle-outline" size={20} color="#d1c4c4" />
+                      <Ionicons name="close-circle-outline" size={20} color={colors.textMuted} />
                     </TouchableOpacity>
                   </View>
                 ))
@@ -255,15 +255,15 @@ export function PlantCard({ plant, onClose }: Props) {
             <View style={styles.tabContent}>
               <View style={styles.noteInputRow}>
                 <TextInput
-                  style={styles.noteInput}
-                  placeholder="Додати нотатку..."
-                  placeholderTextColor="#a8b8a8"
+                  style={[styles.noteInput, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
+                  placeholder={t('plant.addNotePlaceholder')}
+                  placeholderTextColor={colors.textMuted}
                   value={noteText}
                   onChangeText={setNoteText}
                   multiline
                 />
                 <TouchableOpacity
-                  style={[styles.noteAddBtn, !noteText.trim() && styles.noteAddBtnDisabled]}
+                  style={[styles.noteAddBtn, !noteText.trim() && styles.noteAddBtnDisabled, { backgroundColor: colors.primary }]}
                   onPress={onAddNote}
                   disabled={!noteText.trim()}
                 >
@@ -272,7 +272,7 @@ export function PlantCard({ plant, onClose }: Props) {
               </View>
 
               {plant.notes.length === 0 ? (
-                <Text style={styles.emptyText}>Нотаток ще немає 📝</Text>
+                <Text style={[styles.emptyText, { color: colors.textMuted }]}>{t('plant.noNotes')}</Text>
               ) : (
                 plant.notes.map((note) => (
                   <View key={note.id} style={styles.noteItem}>
@@ -295,19 +295,18 @@ export function PlantCard({ plant, onClose }: Props) {
 }
 
 function InfoRow({
-  icon,
-  label,
-  value,
+  icon, label, value, colors,
 }: {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
   value: string;
+  colors: any;
 }) {
   return (
-    <View style={styles.infoRow}>
-      <Ionicons name={icon} size={18} color="#7dd1aa" style={{ width: 26 }} />
-      <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue}>{value}</Text>
+    <View style={[styles.infoRow, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
+      <Ionicons name={icon} size={18} color={colors.primaryLight} style={{ width: 26 }} />
+      <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>{label}</Text>
+      <Text style={[styles.infoValue, { color: colors.text }]}>{value}</Text>
     </View>
   );
 }

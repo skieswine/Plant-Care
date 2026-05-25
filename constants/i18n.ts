@@ -116,6 +116,10 @@ const uk = {
     nothingToday: 'На сьогодні все полито! ✅',
     waterOn: '💧 Полити:',
     wateredOn: '✅ Вже полили:',
+    legendTitle: 'Позначення:',
+    legendWatered: 'Полито',
+    legendPlanned: 'Запланований полив',
+    legendOverdue: 'Прострочено',
   },
   countdown: {
     today: '💧 Сьогодні!',
@@ -256,6 +260,10 @@ const en: Translations = {
     nothingToday: 'Everything watered today! ✅',
     waterOn: '💧 Water:',
     wateredOn: '✅ Already watered:',
+    legendTitle: 'Legend:',
+    legendWatered: 'Watered',
+    legendPlanned: 'Planned watering',
+    legendOverdue: 'Overdue',
   },
   countdown: {
     today: '💧 Today!',
@@ -396,6 +404,10 @@ const de: Translations = {
     nothingToday: 'Heute alles gegossen! ✅',
     waterOn: '💧 Gießen:',
     wateredOn: '✅ Bereits gegossen:',
+    legendTitle: 'Legende:',
+    legendWatered: 'Gegossen',
+    legendPlanned: 'Geplantes Gießen',
+    legendOverdue: 'Überfällig',
   },
   countdown: {
     today: '💧 Heute!',
@@ -536,6 +548,10 @@ const ru: Translations = {
     nothingToday: 'Сегодня всё полито! ✅',
     waterOn: '💧 Полить:',
     wateredOn: '✅ Уже полили:',
+    legendTitle: 'Обозначения:',
+    legendWatered: 'Полито',
+    legendPlanned: 'Запланированный полив',
+    legendOverdue: 'Просрочено',
   },
   countdown: {
     today: '💧 Сегодня!',

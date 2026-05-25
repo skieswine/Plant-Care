@@ -166,23 +166,23 @@ export default function CalendarScreen() {
       </View>
 
       {/* Легенда */}
-      <View style={styles.legend}>
-        <Text style={styles.legendTitle}>Позначення:</Text>
+      <View style={[styles.legend, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
+        <Text style={[styles.legendTitle, { color: colors.textSecondary }]}>{t('calendar.legendTitle')}</Text>
         <View style={styles.legendItems}>
-          <LegendItem color="#4db88a" label="Полит" />
-          <LegendItem color="#7dd1aa" label="Запланований полив" />
-          <LegendItem color="#ef4444" label="Прострочено" />
+          <LegendItem color={colors.primary} label={t('calendar.legendWatered')} textColor={colors.text} />
+          <LegendItem color={colors.primaryLight} label={t('calendar.legendPlanned')} textColor={colors.text} />
+          <LegendItem color={colors.urgent} label={t('calendar.legendOverdue')} textColor={colors.text} />
         </View>
       </View>
     </ScrollView>
   );
 }
 
-function LegendItem({ color, label }: { color: string; label: string }) {
+function LegendItem({ color, label, textColor }: { color: string; label: string; textColor?: string }) {
   return (
     <View style={styles.legendItem}>
       <View style={[styles.legendDot, { backgroundColor: color }]} />
-      <Text style={styles.legendLabel}>{label}</Text>
+      <Text style={[styles.legendLabel, textColor ? { color: textColor } : {}]}>{label}</Text>
     </View>
   );
 }
