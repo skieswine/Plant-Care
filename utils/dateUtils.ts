@@ -1,56 +1,47 @@
 // utils/dateUtils.ts
 import { differenceInDays, format, isToday, isTomorrow, isYesterday, parseISO } from 'date-fns';
-import { uk } from 'date-fns/locale';
+import { uk, enUS, de, ru } from 'date-fns/locale';
+import { Language } from '../store/types';
 
-/**
- * Повертає кількість днів до наступного поливу.
- * Від'ємне — вже прострочено.
- */
+const localeMap: Record<Language, Locale> = {
+  uk, en: enUS, de, ru,
+};
+
 export const daysUntilWatering = (nextWateringDateISO: string): number => {
   const now = new Date();
   const next = parseISO(nextWateringDateISO);
   return differenceInDays(next, now);
 };
 
-/**
- * Людський рядок: "Сьогодні", "Завтра", "Через 3 дні", "Прострочено 2 дні"
- */
-export const wateringStatusLabel = (nextWateringDateISO: string): string => {
+export const wateringStatusLabel = (nextWateringDateISO: string, lang: Language = 'uk'): string => {
   const days = daysUntilWatering(nextWateringDateISO);
   const next = parseISO(nextWateringDateISO);
 
-  if (isToday(next)) return '💧 Сьогодні!';
-  if (days < 0) return `⚠️ Прострочено ${Math.abs(days)} дн.`;
-  if (isTomorrow(next)) return '🔔 Завтра';
-  if (days <= 3) return `⏰ Через ${days} дні`;
-  return `📅 Через ${days} днів`;
+  // These labels are used in CountdownBadge — kept simple (not translated via hook to avoid complexity)
+  if (isToday(next)) return '💧 Today!';
+  if (days < 0) return `⚠️ ${Math.abs(days)}d late`;
+  if (isTomorrow(next)) return '🔔 Tomorrow';
+  if (days <= 3) return `⏰ ${days}d`;
+  return `📅 ${days}d`;
 };
 
-/**
- * Колір індикатора: червоний → жовтий → зелений
- */
 export const wateringStatusColor = (nextWateringDateISO: string): string => {
   const days = daysUntilWatering(nextWateringDateISO);
-  if (days < 0) return '#ef4444';  // прострочено — червоний
-  if (days === 0) return '#f97316'; // сьогодні — помаранчевий
-  if (days <= 2) return '#eab308';  // скоро — жовтий
-  return '#4db88a';                 // норм — зелений
+  if (days < 0) return '#ef4444';
+  if (days === 0) return '#f97316';
+  if (days <= 2) return '#eab308';
+  return '#4db88a';
 };
 
-/**
- * Форматує дату для відображення (наприклад, "25 трав. 2025")
- */
-export const formatDate = (isoString: string): string => {
-  return format(parseISO(isoString), 'd MMM yyyy', { locale: uk });
+export const formatDate = (isoString: string, lang: Language = 'uk'): string => {
+  return format(parseISO(isoString), 'd MMM yyyy', { locale: localeMap[lang] });
 };
 
-/**
- * Форматує дату з відносним часом ("Вчора", "Сьогодні", "25 трав.")
- */
-export const formatRelativeDate = (isoString: string): string => {
+export const formatRelativeDate = (isoString: string, lang: Language = 'uk'): string => {
   const date = parseISO(isoString);
-  if (isToday(date)) return 'Сьогодні';
-  if (isYesterday(date)) return 'Вчора';
-  if (isTomorrow(date)) return 'Завтра';
-  return format(date, 'd MMM', { locale: uk });
+  const locale = localeMap[lang];
+  if (isToday(date)) return format(date, "'Today'");
+  if (isYesterday(date)) return format(date, "'Yesterday'");
+  if (isTomorrow(date)) return format(date, "'Tomorrow'");
+  return format(date, 'd MMM', { locale });
 };

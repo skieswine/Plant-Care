@@ -6,9 +6,13 @@ import { addDays, format } from 'date-fns';
 import { Plant, Room, CareNote, WateringRecord, LightLevel, getPlantDisplayName } from './types';
 export { getPlantDisplayName };
 
+import { Language } from './types';
+
 interface AppState {
   plants: Plant[];
   rooms: Room[];
+  theme: 'light' | 'dark';
+  language: Language;
 
   // Plant actions
   addPlant: (data: {
@@ -26,11 +30,16 @@ interface AppState {
   postponeWatering: (id: string, days: number) => void;
   addNote: (plantId: string, text: string) => void;
   deleteNote: (plantId: string, noteId: string) => void;
+  deleteWateringRecord: (plantId: string, recordId: string) => void;
 
   // Room actions
   addRoom: (name: string, emoji: string) => Room;
   updateRoom: (id: string, name: string, emoji: string) => void;
   deleteRoom: (id: string) => void;
+
+  // Settings
+  setTheme: (theme: 'light' | 'dark') => void;
+  setLanguage: (lang: Language) => void;
 
   // Helpers
   getPlantsByRoom: (roomId: string) => Plant[];
@@ -48,6 +57,8 @@ export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
       plants: [],
+      theme: 'light' as const,
+      language: 'uk' as Language,
       rooms: [
         { id: 'room-1', name: 'Вітальня', emoji: '🛋️', createdAt: new Date().toISOString() },
         { id: 'room-2', name: 'Спальня',  emoji: '🛏️', createdAt: new Date().toISOString() },
@@ -155,6 +166,16 @@ export const useAppStore = create<AppState>()(
         }));
       },
 
+      deleteWateringRecord: (plantId, recordId) => {
+        set((state) => ({
+          plants: state.plants.map((p) =>
+            p.id === plantId
+              ? { ...p, wateringHistory: p.wateringHistory.filter((r) => r.id !== recordId) }
+              : p
+          ),
+        }));
+      },
+
       addRoom: (name, emoji) => {
         const newRoom: Room = {
           id: generateId(),
@@ -179,6 +200,9 @@ export const useAppStore = create<AppState>()(
           plants: state.plants.filter((p) => p.roomId !== id),
         }));
       },
+
+      setTheme: (theme) => set({ theme }),
+      setLanguage: (language) => set({ language }),
 
       getPlantsByRoom: (roomId) => {
         return get().plants.filter((p) => p.roomId === roomId);

@@ -8,6 +8,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '../../store/useAppStore';
 import { getPlantDisplayName } from '../../store/useAppStore';
 import { CountdownBadge } from '../../components/CountdownBadge';
+import { useTheme } from '../../hooks/useTheme';
+import { useT } from '../../hooks/useT';
 
 // Українська локаль для календаря
 LocaleConfig.locales['uk'] = {
@@ -29,6 +31,8 @@ export default function CalendarScreen() {
   const plants = useAppStore((s) => s.plants);
   const getWateringEvents = useAppStore((s) => s.getWateringEventsForCalendar);
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const { colors, isDark } = useTheme();
+  const { t } = useT();
 
   const markedDates = useMemo(() => {
     const events = getWateringEvents();
@@ -76,19 +80,19 @@ export default function CalendarScreen() {
   }, [plants]);
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView style={{ flex: 1, backgroundColor: colors.background }} showsVerticalScrollIndicator={false}>
       {/* Термінові сьогодні */}
       {urgentPlants.length > 0 && (
-        <View style={styles.urgentSection}>
+        <View style={[styles.urgentSection, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
           <View style={styles.urgentHeader}>
-            <Ionicons name="alert-circle" size={18} color="#ef4444" />
-            <Text style={styles.urgentTitle}>Потребують поливу!</Text>
+            <Ionicons name="alert-circle" size={18} color={colors.urgent} />
+            <Text style={[styles.urgentTitle, { color: colors.text }]}>{t('calendar.urgentTitle')}</Text>
           </View>
           {urgentPlants.map((plant) => (
-            <View key={plant.id} style={styles.urgentItem}>
+            <View key={plant.id} style={[styles.urgentItem, { backgroundColor: colors.surfaceSecondary }]}>
               <Text style={{ fontSize: 20 }}>🌿</Text>
               <View style={{ flex: 1 }}>
-                <Text style={styles.plantName}>{getPlantDisplayName(plant)}</Text>
+                <Text style={[styles.plantName, { color: colors.text }]}>{getPlantDisplayName(plant)}</Text>
               </View>
               <CountdownBadge nextWateringDate={plant.nextWateringDate} />
             </View>
@@ -97,25 +101,25 @@ export default function CalendarScreen() {
       )}
 
       {/* Календар */}
-      <View style={styles.calendarWrapper}>
+      <View style={[styles.calendarWrapper, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
         <Calendar
           onDayPress={(day: any) => setSelectedDate(day.dateString)}
           markedDates={markedDates}
           markingType="multi-dot"
           theme={{
-            backgroundColor: '#faf8f3',
-            calendarBackground: '#fff',
-            textSectionTitleColor: '#9bada0',
-            selectedDayBackgroundColor: '#4db88a',
+            backgroundColor: colors.background,
+            calendarBackground: colors.surface,
+            textSectionTitleColor: colors.textMuted,
+            selectedDayBackgroundColor: colors.primary,
             selectedDayTextColor: '#fff',
-            todayTextColor: '#4db88a',
-            dayTextColor: '#2d4a30',
-            textDisabledColor: '#c8d8c8',
-            dotColor: '#4db88a',
+            todayTextColor: colors.primary,
+            dayTextColor: colors.text,
+            textDisabledColor: colors.border,
+            dotColor: colors.primary,
             selectedDotColor: '#fff',
-            arrowColor: '#4db88a',
-            monthTextColor: '#2d4a30',
-            indicatorColor: '#4db88a',
+            arrowColor: colors.primary,
+            monthTextColor: colors.text,
+            indicatorColor: colors.primary,
             textDayFontWeight: '500',
             textMonthFontWeight: '700',
             textDayHeaderFontWeight: '600',
@@ -127,18 +131,18 @@ export default function CalendarScreen() {
       </View>
 
       {/* Деталі вибраного дня */}
-      <View style={styles.dayDetails}>
-        <Text style={styles.dayTitle}>
+      <View style={[styles.dayDetails, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
+        <Text style={[styles.dayTitle, { color: colors.text }]}>
           {format(new Date(selectedDate), "d MMMM yyyy", { locale: uk })}
         </Text>
 
         {plantsForDate.length > 0 && (
           <View style={styles.detailSection}>
-            <Text style={styles.detailSectionTitle}>💧 Полити:</Text>
+            <Text style={[styles.detailSectionTitle, { color: colors.textSecondary }]}>{t('calendar.waterOn')}</Text>
             {plantsForDate.map((plant) => (
-              <View key={plant.id} style={styles.detailItem}>
-                <Ionicons name="water-outline" size={16} color="#7dd1aa" />
-                <Text style={styles.detailPlantName}>{getPlantDisplayName(plant)}</Text>
+              <View key={plant.id} style={[styles.detailItem, { backgroundColor: colors.surfaceSecondary }]}>
+                <Ionicons name="water-outline" size={16} color={colors.primaryLight} />
+                <Text style={[styles.detailPlantName, { color: colors.text }]}>{getPlantDisplayName(plant)}</Text>
               </View>
             ))}
           </View>
@@ -146,18 +150,18 @@ export default function CalendarScreen() {
 
         {wateredOnDate.length > 0 && (
           <View style={styles.detailSection}>
-            <Text style={styles.detailSectionTitle}>✅ Вже полили:</Text>
+            <Text style={[styles.detailSectionTitle, { color: colors.textSecondary }]}>{t('calendar.wateredOn')}</Text>
             {wateredOnDate.map((plant) => (
-              <View key={plant.id} style={styles.detailItem}>
-                <Ionicons name="checkmark-circle-outline" size={16} color="#4db88a" />
-                <Text style={styles.detailPlantName}>{getPlantDisplayName(plant)}</Text>
+              <View key={plant.id} style={[styles.detailItem, { backgroundColor: colors.surfaceSecondary }]}>
+                <Ionicons name="checkmark-circle-outline" size={16} color={colors.primary} />
+                <Text style={[styles.detailPlantName, { color: colors.text }]}>{getPlantDisplayName(plant)}</Text>
               </View>
             ))}
           </View>
         )}
 
         {plantsForDate.length === 0 && wateredOnDate.length === 0 && (
-          <Text style={styles.emptyDay}>Жодних поливів цього дня 🌱</Text>
+          <Text style={[styles.emptyDay, { color: colors.textMuted }]}>{t('calendar.nothingToday')}</Text>
         )}
       </View>
 

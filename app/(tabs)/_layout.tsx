@@ -3,6 +3,8 @@ import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { View, Text, StyleSheet } from 'react-native';
 import { useAppStore } from '../../store/useAppStore';
+import { useTheme } from '../../hooks/useTheme';
+import { useT } from '../../hooks/useT';
 
 function TabIcon({
   name,
@@ -49,15 +51,17 @@ const styles = StyleSheet.create({
 
 export default function TabLayout() {
   const urgentCount = useAppStore((s) => s.getPlantsNeedingWaterToday().length);
+  const { colors } = useTheme();
+  const { t } = useT();
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#4db88a',
-        tabBarInactiveTintColor: '#9bada0',
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textMuted,
         tabBarStyle: {
-          backgroundColor: '#faf8f3',
-          borderTopColor: '#e8f5ee',
+          backgroundColor: colors.tabBar,
+          borderTopColor: colors.borderLight,
           borderTopWidth: 1,
           height: 60,
           paddingBottom: 8,
@@ -67,16 +71,16 @@ export default function TabLayout() {
           fontSize: 11,
           fontWeight: '600',
         },
-        headerStyle: { backgroundColor: '#f0faf5' },
-        headerTintColor: '#2d4a30',
+        headerStyle: { backgroundColor: colors.header },
+        headerTintColor: colors.text,
         headerTitleStyle: { fontWeight: '700', fontSize: 18 },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Мої рослини',
-          tabBarLabel: 'Рослини',
+          title: t('tabs.plantsTitle'),
+          tabBarLabel: t('tabs.plants'),
           tabBarIcon: ({ focused, color }) => (
             <TabIcon
               name={focused ? 'leaf' : 'leaf-outline'}
@@ -90,8 +94,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="calendar"
         options={{
-          title: 'Календар поливу',
-          tabBarLabel: 'Календар',
+          title: t('tabs.calendarTitle'),
+          tabBarLabel: t('tabs.calendar'),
           tabBarIcon: ({ focused, color }) => (
             <TabIcon
               name={focused ? 'calendar' : 'calendar-outline'}
@@ -104,8 +108,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Налаштування',
-          tabBarLabel: 'Налашт.',
+          title: t('settings.title'),
+          tabBarLabel: t('tabs.settings'),
           tabBarIcon: ({ focused, color }) => (
             <TabIcon
               name={focused ? 'settings' : 'settings-outline'}

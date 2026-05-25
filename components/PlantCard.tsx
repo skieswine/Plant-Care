@@ -39,6 +39,7 @@ export function PlantCard({ plant, onClose }: Props) {
 
   const addNote = useAppStore((s) => s.addNote);
   const deleteNote = useAppStore((s) => s.deleteNote);
+  const deleteWateringRecord = useAppStore((s) => s.deleteWateringRecord);
   const deletePlant = useAppStore((s) => s.deletePlant);
   const { handleWater, handlePostpone } = useWatering();
 
@@ -224,6 +225,25 @@ export function PlantCard({ plant, onClose }: Props) {
                       </Text>
                       <Text style={styles.historyDate}>{formatRelativeDate(record.date)}</Text>
                     </View>
+                    <TouchableOpacity
+                      onPress={() =>
+                        Alert.alert(
+                          'Видалити запис?',
+                          'Цей запис буде видалено з журналу.',
+                          [
+                            { text: 'Скасувати', style: 'cancel' },
+                            {
+                              text: 'Видалити',
+                              style: 'destructive',
+                              onPress: () => deleteWateringRecord(plant.id, record.id),
+                            },
+                          ]
+                        )
+                      }
+                      style={styles.historyDeleteBtn}
+                    >
+                      <Ionicons name="close-circle-outline" size={20} color="#d1c4c4" />
+                    </TouchableOpacity>
                   </View>
                 ))
               )}
@@ -457,6 +477,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#e8f5ee',
+  },
+  historyDeleteBtn: {
+    padding: 4,
+    marginLeft: 6,
   },
   historyLabel: {
     fontSize: 14,

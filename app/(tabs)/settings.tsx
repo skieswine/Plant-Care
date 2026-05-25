@@ -5,262 +5,194 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ScrollView,
-  Linking,
+  Switch,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useAppStore } from '../../store/useAppStore';
-import { cancelAllNotifications } from '../../utils/notificationUtils';
-import Constants from 'expo-constants';
+import { useTheme } from '../../hooks/useTheme';
+import { useT } from '../../hooks/useT';
+import { LANGUAGE_LABELS, Language } from '../../constants/i18n';
+
+const LANGUAGES: Language[] = ['uk', 'en', 'de', 'ru'];
 
 export default function SettingsScreen() {
-  const plants = useAppStore((s) => s.plants);
-  const rooms = useAppStore((s) => s.rooms);
+  const { colors, isDark } = useTheme();
+  const { t, language } = useT();
+  const setTheme = useAppStore((s) => s.setTheme);
+  const setLanguage = useAppStore((s) => s.setLanguage);
+  const theme = useAppStore((s) => s.theme);
 
-  const handleClearData = () => {
-    Alert.alert(
-      '⚠️ Видалити всі дані?',
-      'Це видалить всі рослини, кімнати та нотатки. Дію неможливо скасувати.',
-      [
-        { text: 'Скасувати', style: 'cancel' },
-        {
-          text: 'Видалити все',
-          style: 'destructive',
-          onPress: async () => {
-            await cancelAllNotifications();
-            // Очищаємо AsyncStorage напряму
-            const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
-            await AsyncStorage.removeItem('plantcare-storage');
-            Alert.alert('Готово', 'Дані видалено. Перезапусти додаток.');
-          },
-        },
-      ]
-    );
-  };
+  const s = makeStyles(colors);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Статистика */}
-      <View style={styles.statsCard}>
-        <Text style={styles.statsTitle}>📊 Статистика</Text>
-        <View style={styles.statsRow}>
-          <StatItem icon="leaf" value={plants.length} label="Рослин" color="#4db88a" />
-          <StatItem icon="home" value={rooms.length} label="Кімнат" color="#c4a882" />
-          <StatItem
-            icon="water"
-            value={plants.reduce((acc, p) => acc + p.wateringHistory.filter(r => !r.postponed).length, 0)}
-            label="Поливів"
-            color="#7dd1aa"
-          />
+    <ScrollView style={s.container} contentContainerStyle={s.content}>
+      {/* Тема */}
+      <Animated.View entering={FadeInDown.delay(0).springify()} style={s.section}>
+        <Text style={s.sectionTitle}>{t('settings.theme')}</Text>
+        <View style={s.card}>
+          <TouchableOpacity
+            style={[s.themeOption, theme === 'light' && s.themeOptionActive]}
+            onPress={() => setTheme('light')}
+            activeOpacity={0.8}
+          >
+            <View style={s.themeIconWrap}>
+              <Ionicons name="sunny" size={26} color={theme === 'light' ? '#fff' : '#f59e0b'} />
+            </View>
+            <Text style={[s.themeLabel, theme === 'light' && s.themeLabelActive]}>
+              {t('settings.themeLight')}
+            </Text>
+            {theme === 'light' && (
+              <Ionicons name="checkmark-circle" size={20} color="#fff" style={{ marginLeft: 'auto' }} />
+            )}
+          </TouchableOpacity>
+
+          <View style={s.divider} />
+
+          <TouchableOpacity
+            style={[s.themeOption, theme === 'dark' && s.themeOptionActiveDark]}
+            onPress={() => setTheme('dark')}
+            activeOpacity={0.8}
+          >
+            <View style={[s.themeIconWrap, { backgroundColor: theme === 'dark' ? '#4db88a33' : colors.surfaceSecondary }]}>
+              <Ionicons name="moon" size={24} color={theme === 'dark' ? colors.primaryLight : colors.textMuted} />
+            </View>
+            <Text style={[s.themeLabel, theme === 'dark' && { color: colors.primaryLight }]}>
+              {t('settings.themeDark')}
+            </Text>
+            {theme === 'dark' && (
+              <Ionicons name="checkmark-circle" size={20} color={colors.primaryLight} style={{ marginLeft: 'auto' }} />
+            )}
+          </TouchableOpacity>
         </View>
-      </View>
+      </Animated.View>
 
-      {/* Загальні налаштування */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Загальні</Text>
+      {/* Мова */}
+      <Animated.View entering={FadeInDown.delay(80).springify()} style={s.section}>
+        <Text style={s.sectionTitle}>{t('settings.language')}</Text>
+        <View style={s.card}>
+          {LANGUAGES.map((lang, index) => (
+            <React.Fragment key={lang}>
+              {index > 0 && <View style={s.divider} />}
+              <TouchableOpacity
+                style={s.langOption}
+                onPress={() => setLanguage(lang)}
+                activeOpacity={0.7}
+              >
+                <Text style={s.langLabel}>{LANGUAGE_LABELS[lang]}</Text>
+                {language === lang && (
+                  <Ionicons name="checkmark-circle" size={22} color={colors.primary} />
+                )}
+              </TouchableOpacity>
+            </React.Fragment>
+          ))}
+        </View>
+        <Text style={s.hint}>{t('settings.languageNote')}</Text>
+      </Animated.View>
 
-        <SettingRow
-          icon="notifications-outline"
-          label="Сповіщення"
-          description="Дозвіл на push-сповіщення"
-          onPress={() => Linking.openSettings()}
-        />
-        <SettingRow
-          icon="information-circle-outline"
-          label="Про додаток"
-          description={`PlantCare v${Constants.expoConfig?.version || '1.0.0'}`}
-          onPress={() => {}}
-          chevron={false}
-        />
-      </View>
-
-      {/* Небезпечна зона */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Небезпечна зона</Text>
-        <TouchableOpacity style={styles.dangerRow} onPress={handleClearData}>
-          <Ionicons name="trash-outline" size={20} color="#ef4444" />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.dangerLabel}>Видалити всі дані</Text>
-            <Text style={styles.dangerDesc}>Рослини, кімнати, нотатки</Text>
+      {/* Про додаток */}
+      <Animated.View entering={FadeInDown.delay(160).springify()} style={s.section}>
+        <Text style={s.sectionTitle}>{t('settings.about')}</Text>
+        <View style={s.card}>
+          <View style={s.aboutRow}>
+            <Text style={{ fontSize: 48 }}>🪴</Text>
+            <View style={{ flex: 1, gap: 4 }}>
+              <Text style={s.aboutTitle}>PlantCare</Text>
+              <Text style={s.aboutSub}>{t('settings.version')}</Text>
+              <Text style={s.aboutSub}>{t('settings.madeWith')}</Text>
+            </View>
           </View>
-          <Ionicons name="chevron-forward" size={18} color="#ef4444" />
-        </TouchableOpacity>
-      </View>
-
-      {/* Footer */}
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>🌿 PlantCare — доглядай з любов'ю</Text>
-      </View>
+        </View>
+      </Animated.View>
     </ScrollView>
   );
 }
 
-function StatItem({
-  icon,
-  value,
-  label,
-  color,
-}: {
-  icon: keyof typeof Ionicons.glyphMap;
-  value: number;
-  label: string;
-  color: string;
-}) {
-  return (
-    <View style={styles.statItem}>
-      <View style={[styles.statIcon, { backgroundColor: color + '22' }]}>
-        <Ionicons name={icon} size={22} color={color} />
-      </View>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
-    </View>
-  );
-}
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    content: { padding: 20, gap: 24, paddingBottom: 48 },
+    section: { gap: 10 },
+    sectionTitle: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: colors.textSecondary,
+      textTransform: 'uppercase',
+      letterSpacing: 0.6,
+      paddingLeft: 4,
+    },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: 18,
+      overflow: 'hidden',
+      borderWidth: 1,
+      borderColor: colors.borderLight,
+    },
+    divider: { height: 1, backgroundColor: colors.borderLight, marginHorizontal: 16 },
 
-function SettingRow({
-  icon,
-  label,
-  description,
-  onPress,
-  chevron = true,
-}: {
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-  description?: string;
-  onPress: () => void;
-  chevron?: boolean;
-}) {
-  return (
-    <TouchableOpacity style={styles.settingRow} onPress={onPress} activeOpacity={0.7}>
-      <View style={styles.settingIcon}>
-        <Ionicons name={icon} size={20} color="#4db88a" />
-      </View>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.settingLabel}>{label}</Text>
-        {description && <Text style={styles.settingDesc}>{description}</Text>}
-      </View>
-      {chevron && <Ionicons name="chevron-forward" size={18} color="#c8d8c8" />}
-    </TouchableOpacity>
-  );
-}
+    // Theme
+    themeOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 14,
+      padding: 16,
+    },
+    themeOptionActive: {
+      backgroundColor: '#4db88a',
+    },
+    themeOptionActiveDark: {
+      backgroundColor: colors.surfaceSecondary,
+    },
+    themeIconWrap: {
+      width: 44,
+      height: 44,
+      borderRadius: 12,
+      backgroundColor: '#f59e0b22',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    themeLabel: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    themeLabelActive: { color: '#fff' },
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#faf8f3' },
-  content: { padding: 16, gap: 20, paddingBottom: 40 },
-  statsCard: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
-    gap: 16,
-  },
-  statsTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#2d4a30',
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  statItem: {
-    alignItems: 'center',
-    gap: 6,
-  },
-  statIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  statValue: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#2d4a30',
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#9bada0',
-    fontWeight: '500',
-  },
-  section: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#9bada0',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    paddingHorizontal: 16,
-    paddingTop: 14,
-    paddingBottom: 4,
-  },
-  settingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderTopWidth: 1,
-    borderTopColor: '#f0faf5',
-    gap: 12,
-  },
-  settingIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: '#f0faf5',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  settingLabel: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#2d4a30',
-  },
-  settingDesc: {
-    fontSize: 12,
-    color: '#9bada0',
-    marginTop: 1,
-  },
-  dangerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    gap: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#fff0f0',
-  },
-  dangerLabel: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#ef4444',
-  },
-  dangerDesc: {
-    fontSize: 12,
-    color: '#f87171',
-    marginTop: 1,
-  },
-  footer: {
-    alignItems: 'center',
-    paddingVertical: 16,
-  },
-  footerText: {
-    fontSize: 13,
-    color: '#9bada0',
-  },
-});
+    // Language
+    langOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 18,
+      paddingVertical: 16,
+    },
+    langLabel: {
+      fontSize: 16,
+      color: colors.text,
+      fontWeight: '500',
+    },
+    hint: {
+      fontSize: 12,
+      color: colors.textMuted,
+      paddingLeft: 4,
+    },
+
+    // About
+    aboutRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 16,
+      padding: 18,
+    },
+    aboutTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    aboutSub: {
+      fontSize: 13,
+      color: colors.textMuted,
+    },
+  });
+}

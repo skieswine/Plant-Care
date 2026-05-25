@@ -1,4 +1,3 @@
-// app/room/[id].tsx
 import React, { useState, useCallback } from 'react';
 import {
   View,
@@ -6,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,6 +22,25 @@ export default function RoomScreen() {
   const room = useAppStore((s) => s.rooms.find((r) => r.id === id));
   const allPlants = useAppStore((s) => s.plants);
   const plants = allPlants.filter((p) => p.roomId === id);
+  const deleteRoom = useAppStore((s) => s.deleteRoom);
+
+  const handleDeleteRoom = () => {
+    if (!room) return;
+    Alert.alert(
+      'Видалити кімнату?',
+      plants.length > 0
+        ? `У кімнаті «${room.name}» є ${plants.length} рослин. Вони також будуть видалені.`
+        : `Видалити кімнату «${room.name}»?`,
+      [
+        { text: 'Скасувати', style: 'cancel' },
+        {
+          text: 'Видалити',
+          style: 'destructive',
+          onPress: () => { deleteRoom(id); router.back(); },
+        },
+      ]
+    );
+  };
 
   const handlePlantPress = useCallback((plant: Plant) => {
     setSelectedPlant(plant);
@@ -39,14 +58,19 @@ export default function RoomScreen() {
         options={{
           title: `${room.emoji} ${room.name}`,
           headerRight: () => (
-            <TouchableOpacity
-              onPress={() =>
-                router.push({ pathname: '/plant/add', params: { roomId: id } })
-              }
-              style={styles.headerBtn}
-            >
-              <Ionicons name="add" size={24} color="#4db88a" />
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', gap: 8, marginRight: 8 }}>
+              <TouchableOpacity
+                onPress={() =>
+                  router.push({ pathname: '/plant/add', params: { roomId: id } })
+                }
+                style={styles.headerBtn}
+              >
+                <Ionicons name="add" size={24} color="#4db88a" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleDeleteRoom} style={styles.headerBtn}>
+                <Ionicons name="trash-outline" size={20} color="#ef4444" />
+              </TouchableOpacity>
+            </View>
           ),
         }}
       />

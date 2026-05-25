@@ -4,22 +4,28 @@ import { Stack } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import { configureNotificationHandler } from '../utils/notificationUtils';
+import { useAppStore } from '../store/useAppStore';
+import { useT } from '../hooks/useT';
+import { useTheme } from '../hooks/useTheme';
 import '../global.css';
 
 export default function RootLayout() {
+  const { colors, isDark } = useTheme();
+  const { t } = useT();
+
   useEffect(() => {
     configureNotificationHandler();
   }, []);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <StatusBar style="dark" backgroundColor="#f0faf5" />
+      <StatusBar style={isDark ? 'light' : 'dark'} backgroundColor={colors.header} />
       <Stack
         screenOptions={{
-          headerStyle: { backgroundColor: '#f0faf5' },
-          headerTintColor: '#2d4a30',
+          headerStyle: { backgroundColor: colors.header },
+          headerTintColor: colors.text,
           headerTitleStyle: { fontWeight: '700' },
-          contentStyle: { backgroundColor: '#faf8f3' },
+          contentStyle: { backgroundColor: colors.background },
           animation: 'slide_from_right',
         }}
       >
@@ -27,7 +33,7 @@ export default function RootLayout() {
         <Stack.Screen
           name="plant/add"
           options={{
-            title: 'Нова рослина 🌱',
+            title: t('plant.newTitle'),
             presentation: 'modal',
             animation: 'slide_from_bottom',
           }}
@@ -35,7 +41,7 @@ export default function RootLayout() {
         <Stack.Screen
           name="room/add"
           options={{
-            title: 'Нова кімната',
+            title: t('room.newTitle'),
             presentation: 'modal',
             animation: 'slide_from_bottom',
           }}

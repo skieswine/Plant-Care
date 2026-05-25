@@ -20,6 +20,7 @@ import { useAppStore } from '../../store/useAppStore';
 import { getPlantDisplayName } from '../../store/useAppStore';
 import { LightLevel } from '../../store/types';
 import { LightLevelIcon } from '../../components/LightLevelIcon';
+import { PLANT_SPECIES } from '../../constants/plantSpecies';
 
 const WATERING_PRESETS = [7, 14, 30];
 
@@ -29,23 +30,7 @@ const LIGHT_LEVELS: { value: LightLevel; label: string }[] = [
   { value: 'direct', label: 'Пряме сонце' },
 ];
 
-const POPULAR_SPECIES = [
-  { label: '🌿 Монстера', value: 'Монстера' },
-  { label: '🌳 Фікус', value: 'Фікус' },
-  { label: '🌵 Кактус', value: 'Кактус' },
-  { label: '🪨 Суккулент', value: 'Суккулент' },
-  { label: '🌸 Орхідея', value: 'Орхідея' },
-  { label: '🌿 Папороть', value: 'Папороть' },
-  { label: '💚 Алое', value: 'Алое' },
-  { label: '🍃 Потос', value: 'Потос' },
-  { label: "🌱 Сансев'єра", value: "Сансев'єра" },
-  { label: '🌴 Драцена', value: 'Драцена' },
-  { label: '🕊️ Спатифілум', value: 'Спатифілум' },
-  { label: '🌾 Хлорофітум', value: 'Хлорофітум' },
-  { label: '🌺 Гібіскус', value: 'Гібіскус' },
-  { label: '🍀 Фіалка', value: 'Фіалка' },
-  { label: '🌻 Бегонія', value: 'Бегонія' },
-];
+const POPULAR_SPECIES = PLANT_SPECIES;
 
 export default function EditPlantScreen() {
   const router = useRouter();

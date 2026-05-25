@@ -1,6 +1,7 @@
 // store/types.ts
 
 export type LightLevel = 'shade' | 'partial' | 'direct';
+export type Language = 'uk' | 'en' | 'de' | 'ru';
 
 export interface WateringRecord {
   id: string;
