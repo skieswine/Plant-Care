@@ -1,5 +1,5 @@
 // app/(tabs)/calendar.tsx
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { format } from 'date-fns';
@@ -52,9 +52,9 @@ export default function CalendarScreen() {
   const { t, language } = useT();
 
   // Switch calendar locale when language changes
-  useEffect(() => {
-    LocaleConfig.defaultLocale = language;
-  }, [language]);
+  // ✅ Set locale SYNCHRONOUSLY before Calendar renders (not in useEffect)
+  // This fixes the one-step-behind locale shift bug
+  LocaleConfig.defaultLocale = language;
 
 
   const markedDates = useMemo(() => {
@@ -123,9 +123,10 @@ export default function CalendarScreen() {
         </View>
       )}
 
-      {/* Календар */}
+      {/* Календар — key примусово перемонтовує при зміні мови або теми */}
       <View style={[styles.calendarWrapper, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
         <Calendar
+          key={`${language}-${colors.background}`}
           onDayPress={(day: any) => setSelectedDate(day.dateString)}
           markedDates={markedDates}
           markingType="multi-dot"
@@ -188,24 +189,48 @@ export default function CalendarScreen() {
         )}
       </View>
 
-      {/* Легенда */}
+      {/* Легенда — красиві кольорові плашки */}
       <View style={[styles.legend, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
         <Text style={[styles.legendTitle, { color: colors.textSecondary }]}>{t('calendar.legendTitle')}</Text>
         <View style={styles.legendItems}>
-          <LegendItem color={colors.primary} label={t('calendar.legendWatered')} textColor={colors.text} />
-          <LegendItem color={colors.primaryLight} label={t('calendar.legendPlanned')} textColor={colors.text} />
-          <LegendItem color={colors.urgent} label={t('calendar.legendOverdue')} textColor={colors.text} />
+          <LegendPill
+            color={colors.primary}
+            icon="water"
+            label={t('calendar.legendWatered')}
+            colors={colors}
+          />
+          <LegendPill
+            color={colors.primaryLight}
+            icon="calendar-outline"
+            label={t('calendar.legendPlanned')}
+            colors={colors}
+          />
+          <LegendPill
+            color={colors.urgent}
+            icon="alert-circle"
+            label={t('calendar.legendOverdue')}
+            colors={colors}
+          />
         </View>
       </View>
     </ScrollView>
   );
 }
 
-function LegendItem({ color, label, textColor }: { color: string; label: string; textColor?: string }) {
+function LegendPill({
+  color, icon, label, colors,
+}: {
+  color: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  colors: any;
+}) {
   return (
-    <View style={styles.legendItem}>
-      <View style={[styles.legendDot, { backgroundColor: color }]} />
-      <Text style={[styles.legendLabel, textColor ? { color: textColor } : {}]}>{label}</Text>
+    <View style={[styles.legendPill, { backgroundColor: color + '22', borderColor: color + '55' }]}>
+      <View style={[styles.legendPillDot, { backgroundColor: color }]}>
+        <Ionicons name={icon} size={11} color="#fff" />
+      </View>
+      <Text style={[styles.legendPillText, { color }]}>{label}</Text>
     </View>
   );
 }
@@ -303,32 +328,40 @@ const styles = StyleSheet.create({
   legend: {
     marginHorizontal: 16,
     marginBottom: 32,
-    gap: 8,
+    borderRadius: 18,
+    borderWidth: 1,
+    padding: 16,
+    gap: 12,
   },
   legendTitle: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#9bada0',
+    fontSize: 11,
+    fontWeight: '700',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
   legendItems: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 14,
+    gap: 8,
   },
-  legendItem: {
+  legendPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 7,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 20,
+    borderWidth: 1,
   },
-  legendDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+  legendPillDot: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  legendLabel: {
-    fontSize: 12,
-    color: '#6b8c6b',
+  legendPillText: {
+    fontSize: 13,
+    fontWeight: '600',
   },
 });
