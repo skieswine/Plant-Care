@@ -153,7 +153,7 @@ export default function HomeScreen() {
       <View style={s.filtersWrapper}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.filterRow}>
           <TouchableOpacity
-            style={[s.filterChip, freqFilter === 'all' && !speciesFilter && s.filterChipAll]}
+            style={[s.filterChip, freqFilter === 'all' && !speciesFilter && s.filterChipActive]}
             onPress={() => { setFreqFilter('all'); setSpeciesFilter(null); }}
           >
             <Text style={[s.filterChipText, freqFilter === 'all' && !speciesFilter && s.filterChipTextActive]}>
@@ -380,7 +380,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20,
       backgroundColor: colors.chipBg, borderWidth: 1.5, borderColor: colors.border,
     },
-    filterChipAll: { backgroundColor: colors.surfaceSecondary, borderColor: colors.primary },
     filterChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
     filterChipSpecies: {
       paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20,
