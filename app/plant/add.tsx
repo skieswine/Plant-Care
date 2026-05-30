@@ -45,6 +45,10 @@ export default function AddPlantScreen() {
   const [intervalDays, setIntervalDays] = useState(7);
   const [customDays, setCustomDays] = useState('');
   const [isCustom, setIsCustom] = useState(false);
+  const [winterIntervalDays, setWinterIntervalDays] = useState<number | undefined>(undefined);
+  const [winterCustomDays, setWinterCustomDays] = useState('');
+  const [isWinterCustom, setIsWinterCustom] = useState(false);
+  const [showWinterSection, setShowWinterSection] = useState(false);
   const [lightLevel, setLightLevel] = useState<LightLevel>('partial');
   const [selectedRoomId, setSelectedRoomId] = useState(roomId || rooms[0]?.id || '');
 
@@ -122,6 +126,9 @@ export default function AddPlantScreen() {
     }
 
     const finalDays = isCustom ? parseInt(customDays, 10) || 7 : intervalDays;
+    const finalWinterDays = showWinterSection
+      ? (isWinterCustom ? (parseInt(winterCustomDays, 10) || undefined) : winterIntervalDays)
+      : undefined;
 
     const newPlant = addPlant({
       name: name.trim() || undefined,
@@ -129,6 +136,7 @@ export default function AddPlantScreen() {
       photoUri,
       roomId: selectedRoomId,
       wateringIntervalDays: finalDays,
+      winterWateringIntervalDays: finalWinterDays,
       lightLevel,
     });
 
@@ -293,6 +301,59 @@ export default function AddPlantScreen() {
         )}
       </View>
 
+      {/* Зимовий інтервал */}
+      <View style={s.section}>
+        <TouchableOpacity
+          style={s.winterToggleBtn}
+          onPress={() => setShowWinterSection(!showWinterSection)}
+          activeOpacity={0.8}
+        >
+          <Text style={{ fontSize: 18 }}>{showWinterSection ? '❄️' : '❄️'}</Text>
+          <Text style={s.winterToggleBtnText}>
+            {showWinterSection ? t('plant.winterIntervalLabel').replace(' (необов\'язково)', '').replace(' (optional)', '').replace(' (optional)', '').split('(')[0].trim() : `+ ${t('plant.winterIntervalLabel')}`}
+          </Text>
+          <Ionicons name={showWinterSection ? 'chevron-up' : 'chevron-down'} size={16} color={colors.primaryLight} />
+        </TouchableOpacity>
+
+        {showWinterSection && (
+          <>
+            <View style={s.chipsRow}>
+              {([7, 14, 21, 30] as number[]).map((days) => (
+                <TouchableOpacity
+                  key={days}
+                  style={[s.chip, !isWinterCustom && winterIntervalDays === days && s.chipWinterActive]}
+                  onPress={() => { setWinterIntervalDays(days); setIsWinterCustom(false); }}
+                >
+                  <Text style={[s.chipText, !isWinterCustom && winterIntervalDays === days && s.chipTextActive]}>
+                    {days} {t('plant.daysUnit')}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+              <TouchableOpacity
+                style={[s.chip, isWinterCustom && s.chipWinterActive]}
+                onPress={() => setIsWinterCustom(true)}
+              >
+                <Text style={[s.chipText, isWinterCustom && s.chipTextActive]}>{t('plant.customDays')}</Text>
+              </TouchableOpacity>
+            </View>
+            {isWinterCustom && (
+              <View style={s.customDaysRow}>
+                <TextInput
+                  style={[s.input, s.customDaysInput]}
+                  placeholder="..."
+                  placeholderTextColor={colors.textMuted}
+                  value={winterCustomDays}
+                  onChangeText={setWinterCustomDays}
+                  keyboardType="numeric"
+                  maxLength={3}
+                />
+                <Text style={s.customDaysLabel}>{t('plant.daysUnit')}</Text>
+              </View>
+            )}
+          </>
+        )}
+      </View>
+
       {/* Рівень освітленості */}
       <View style={s.section}>
         <Text style={s.label}>{t('plant.lightLevel')}</Text>
@@ -418,6 +479,16 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderWidth: 1.5, borderColor: colors.border,
     },
     chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+    chipWinterActive: { backgroundColor: '#60a5fa', borderColor: '#60a5fa' },
+    winterToggleBtn: {
+      flexDirection: 'row', alignItems: 'center', gap: 8,
+      paddingVertical: 10, paddingHorizontal: 14,
+      borderRadius: 12, borderWidth: 1.5, borderColor: colors.border,
+      backgroundColor: colors.surface,
+    },
+    winterToggleBtnText: {
+      flex: 1, fontSize: 14, fontWeight: '600', color: colors.primaryLight,
+    },
     lightChip: { flex: 1, justifyContent: 'center' },
     chipEmoji: { fontSize: 16 },
     chipText: { fontSize: 14, fontWeight: '500', color: colors.textSecondary },

@@ -68,6 +68,12 @@ export default function EditPlantScreen() {
   const [isCustomInterval, setIsCustomInterval] = useState(
     !WATERING_PRESETS.includes(plant.wateringIntervalDays)
   );
+
+  const existingWinter = plant.winterWateringIntervalDays;
+  const [showWinterSection, setShowWinterSection] = useState(!!existingWinter);
+  const [winterInterval, setWinterInterval] = useState(existingWinter ? (WATERING_PRESETS.includes(existingWinter) ? existingWinter : 14) : 14);
+  const [winterCustomDays, setWinterCustomDays] = useState(existingWinter && !WATERING_PRESETS.includes(existingWinter) ? String(existingWinter) : '');
+  const [isCustomWinter, setIsCustomWinter] = useState(!!existingWinter && !WATERING_PRESETS.includes(existingWinter));
   const [lightLevel, setLightLevel] = useState<LightLevel>(plant.lightLevel);
   const [selectedRoomId, setSelectedRoomId] = useState(plant.roomId);
 
@@ -130,13 +136,17 @@ export default function EditPlantScreen() {
     }
 
     const finalDays = isCustomInterval ? parseInt(customDays, 10) || 7 : intervalDays;
+    const finalWinterDays = showWinterSection
+      ? (isCustomWinter ? (parseInt(winterCustomDays, 10) || undefined) : winterInterval)
+      : undefined;
 
     updatePlant(plant.id, {
       name: name.trim() || undefined,
       species: finalSpecies.trim() || undefined,
       photoUri,
       roomId: selectedRoomId,
-      wateringIntervalDays: finalDays,
+      summerWateringIntervalDays: finalDays,
+      winterWateringIntervalDays: finalWinterDays,
       lightLevel,
     });
 
@@ -295,6 +305,59 @@ export default function EditPlantScreen() {
         )}
       </View>
 
+      {/* Зимовий інтервал */}
+      <View style={styles.section}>
+        <TouchableOpacity
+          style={styles.winterToggleBtn}
+          onPress={() => setShowWinterSection(!showWinterSection)}
+          activeOpacity={0.8}
+        >
+          <Text style={{ fontSize: 16 }}>❄️</Text>
+          <Text style={styles.winterToggleBtnText}>
+            {showWinterSection ? 'Зимовий графік' : '+ Зимовий графік (необов\'язково)'}
+          </Text>
+          <Ionicons name={showWinterSection ? 'chevron-up' : 'chevron-down'} size={16} color="#7dd1aa" />
+        </TouchableOpacity>
+
+        {showWinterSection && (
+          <>
+            <View style={styles.chipsRow}>
+              {WATERING_PRESETS.map((days) => (
+                <TouchableOpacity
+                  key={days}
+                  style={[styles.chip, !isCustomWinter && winterInterval === days && styles.chipWinterActive]}
+                  onPress={() => { setWinterInterval(days); setIsCustomWinter(false); }}
+                >
+                  <Text style={[styles.chipText, !isCustomWinter && winterInterval === days && styles.chipTextActiveW]}>
+                    {days} днів
+                  </Text>
+                </TouchableOpacity>
+              ))}
+              <TouchableOpacity
+                style={[styles.chip, isCustomWinter && styles.chipWinterActive]}
+                onPress={() => setIsCustomWinter(true)}
+              >
+                <Text style={[styles.chipText, isCustomWinter && styles.chipTextActiveW]}>Свій</Text>
+              </TouchableOpacity>
+            </View>
+            {isCustomWinter && (
+              <View style={styles.customDaysRow}>
+                <TextInput
+                  style={[styles.input, styles.customDaysInput]}
+                  placeholder="Кількість днів"
+                  placeholderTextColor="#a8b8a8"
+                  value={winterCustomDays}
+                  onChangeText={setWinterCustomDays}
+                  keyboardType="numeric"
+                  maxLength={3}
+                />
+                <Text style={styles.customDaysLabel}>днів</Text>
+              </View>
+            )}
+          </>
+        )}
+      </View>
+
       {/* Рівень освітленості */}
       <View style={styles.section}>
         <Text style={styles.label}>Рівень освітленості</Text>
@@ -418,6 +481,17 @@ const styles = StyleSheet.create({
   customDaysInput: { flex: 1, textAlign: 'center' },
   customDaysLabel: { fontSize: 16, color: '#6b8c6b', fontWeight: '500' },
 
+  winterToggleBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    paddingVertical: 10, paddingHorizontal: 14,
+    borderRadius: 12, borderWidth: 1.5, borderColor: '#c8e6d4',
+    backgroundColor: '#fff',
+  },
+  winterToggleBtnText: {
+    flex: 1, fontSize: 14, fontWeight: '600', color: '#7dd1aa',
+  },
+  chipWinterActive: { backgroundColor: '#60a5fa', borderColor: '#60a5fa' },
+  chipTextActiveW: { color: '#fff', fontWeight: '600' },
   saveBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 10, backgroundColor: '#4db88a', paddingVertical: 16, borderRadius: 16,

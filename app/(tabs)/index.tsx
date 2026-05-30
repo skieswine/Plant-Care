@@ -40,6 +40,8 @@ export default function HomeScreen() {
   const router = useRouter();
   const rooms = useAppStore((s) => s.rooms);
   const plants = useAppStore((s) => s.plants);
+  const season = useAppStore((s) => s.season);
+  const setSeason = useAppStore((s) => s.setSeason);
   const { colors } = useTheme();
   const { t } = useT();
   const deleteRoom = useAppStore((s) => s.deleteRoom);
@@ -124,6 +126,28 @@ export default function HomeScreen() {
           </Text>
         </Animated.View>
       )}
+
+      {/* Сезон */}
+      <View style={s.seasonBar}>
+        <TouchableOpacity
+          style={[s.seasonBtn, season === 'summer' && s.seasonBtnActive]}
+          onPress={() => setSeason('summer')}
+          activeOpacity={0.8}
+        >
+          <Text style={[s.seasonBtnText, season === 'summer' && s.seasonBtnTextActive]}>
+            🌞 {t('home.seasonSummer')}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[s.seasonBtn, season === 'winter' && s.seasonBtnWinterActive]}
+          onPress={() => setSeason('winter')}
+          activeOpacity={0.8}
+        >
+          <Text style={[s.seasonBtnText, season === 'winter' && s.seasonBtnTextActive]}>
+            ❄️ {t('home.seasonWinter')}
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Фільтри */}
       <View style={s.filtersWrapper}>
@@ -308,6 +332,43 @@ export default function HomeScreen() {
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
+    seasonBar: {
+      flexDirection: 'row',
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      gap: 8,
+      backgroundColor: colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.borderLight,
+    },
+    seasonBtn: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 9,
+      borderRadius: 12,
+      backgroundColor: colors.chipBg,
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      gap: 6,
+    },
+    seasonBtnActive: {
+      backgroundColor: '#f59e0b',
+      borderColor: '#f59e0b',
+    },
+    seasonBtnWinterActive: {
+      backgroundColor: '#60a5fa',
+      borderColor: '#60a5fa',
+    },
+    seasonBtnText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.textSecondary,
+    },
+    seasonBtnTextActive: {
+      color: '#fff',
+    },
     urgentBanner: {
       flexDirection: 'row', alignItems: 'center', gap: 10,
       backgroundColor: colors.primary, paddingHorizontal: 20, paddingVertical: 12,

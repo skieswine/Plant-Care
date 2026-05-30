@@ -8,6 +8,7 @@ import {
   TextInput,
   StyleSheet,
   Alert,
+  Modal,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import BottomSheet, {
@@ -43,11 +44,18 @@ export function PlantCard({ plantId, onClose }: Props) {
   const { colors } = useTheme();
   const { t, language } = useT();
 
+  const globalSeason = useAppStore((s) => s.season);
   const addNote = useAppStore((s) => s.addNote);
   const deleteNote = useAppStore((s) => s.deleteNote);
   const deleteWateringRecord = useAppStore((s) => s.deleteWateringRecord);
   const deletePlant = useAppStore((s) => s.deletePlant);
+  const setPlantSeasonOverride = useAppStore((s) => s.setPlantSeasonOverride);
+  const updatePlantSeasonIntervals = useAppStore((s) => s.updatePlantSeasonIntervals);
   const { handleWater, handlePostpone } = useWatering();
+
+  const [showIntervalModal, setShowIntervalModal] = useState(false);
+  const [editSummer, setEditSummer] = useState('');
+  const [editWinter, setEditWinter] = useState('');
 
   const handleSheetChanges = useCallback(
     (index: number) => {
@@ -110,6 +118,24 @@ export function PlantCard({ plantId, onClose }: Props) {
 
   if (!plant) return null;
 
+  const effectiveSeason = plant.seasonOverride ?? globalSeason;
+  const summerDays = plant.summerWateringIntervalDays ?? plant.wateringIntervalDays;
+  const winterDays = plant.winterWateringIntervalDays;
+
+  const openIntervalModal = () => {
+    setEditSummer(String(summerDays));
+    setEditWinter(winterDays ? String(winterDays) : '');
+    setShowIntervalModal(true);
+  };
+
+  const saveIntervals = () => {
+    const s = parseInt(editSummer, 10);
+    const w = editWinter.trim() ? parseInt(editWinter, 10) : undefined;
+    if (!s || s < 1) return;
+    updatePlantSeasonIntervals(plant.id, s, w && w >= 1 ? w : undefined);
+    setShowIntervalModal(false);
+  };
+
   return (
     <>
       {showWateringAnim && (
@@ -118,6 +144,72 @@ export function PlantCard({ plantId, onClose }: Props) {
           onComplete={() => setShowWateringAnim(false)}
         />
       )}
+
+      <Modal visible={showIntervalModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.intervalModal}>
+            <Text style={styles.intervalModalTitle}>{t('plant.intervalModalTitle')}</Text>
+
+            <Text style={styles.intervalFieldLabel}>{t('plant.summerIntervalLabel')}</Text>
+            <View style={styles.intervalPresets}>
+              {[3, 7, 14, 30].map((d) => (
+                <TouchableOpacity
+                  key={d}
+                  style={[styles.intervalPreset, editSummer === String(d) && styles.intervalPresetActive]}
+                  onPress={() => setEditSummer(String(d))}
+                >
+                  <Text style={[styles.intervalPresetText, editSummer === String(d) && styles.intervalPresetTextActive]}>
+                    {d} {t('plant.daysUnit')}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TextInput
+              style={styles.intervalInput}
+              value={editSummer}
+              onChangeText={setEditSummer}
+              keyboardType="numeric"
+              maxLength={3}
+              placeholder="..."
+              placeholderTextColor="#aaa"
+            />
+
+            <Text style={[styles.intervalFieldLabel, { marginTop: 16 }]}>{t('plant.winterIntervalLabel')}</Text>
+            <View style={styles.intervalPresets}>
+              {[7, 14, 21, 30].map((d) => (
+                <TouchableOpacity
+                  key={d}
+                  style={[styles.intervalPreset, editWinter === String(d) && styles.intervalPresetWinterActive]}
+                  onPress={() => setEditWinter(String(d))}
+                >
+                  <Text style={[styles.intervalPresetText, editWinter === String(d) && styles.intervalPresetTextActive]}>
+                    {d} {t('plant.daysUnit')}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TextInput
+              style={styles.intervalInput}
+              value={editWinter}
+              onChangeText={setEditWinter}
+              keyboardType="numeric"
+              maxLength={3}
+              placeholder={t('plant.winterNotSet')}
+              placeholderTextColor="#aaa"
+            />
+            <Text style={styles.intervalHint}>{t('plant.winterIntervalHint')}</Text>
+
+            <View style={styles.intervalModalBtns}>
+              <TouchableOpacity style={styles.intervalCancelBtn} onPress={() => setShowIntervalModal(false)}>
+                <Text style={styles.intervalCancelBtnText}>{t('plant.cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.intervalSaveBtn} onPress={saveIntervals}>
+                <Text style={styles.intervalSaveBtnText}>{t('plant.saveIntervals')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       <BottomSheet
         ref={bottomSheetRef}
@@ -199,6 +291,62 @@ export function PlantCard({ plantId, onClose }: Props) {
           {activeTab === 'info' && (
             <View style={styles.tabContent}>
               {plant.species && <InfoRow icon="leaf" label={t('plant.species_info')} value={translateSpecies(plant.species, language)} colors={colors} />}
+
+              {/* Season section */}
+              <View style={[styles.seasonSection, { borderColor: colors.borderLight }]}>
+                <View style={styles.seasonHeaderRow}>
+                  <Ionicons name="partly-sunny-outline" size={18} color={colors.primaryLight} style={{ width: 26 }} />
+                  <Text style={[styles.seasonSectionLabel, { color: colors.textSecondary }]}>{t('plant.seasonLabel')}</Text>
+                  <TouchableOpacity onPress={openIntervalModal} style={styles.editIntervalsBtn}>
+                    <Ionicons name="create-outline" size={16} color={colors.primaryLight} />
+                    <Text style={[styles.editIntervalsBtnText, { color: colors.primaryLight }]}>{t('plant.editIntervals')}</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.seasonToggleRow}>
+                  <TouchableOpacity
+                    style={[styles.seasonChip, effectiveSeason === 'summer' && styles.seasonChipSummerActive]}
+                    onPress={() => setPlantSeasonOverride(plant.id, 'summer')}
+                  >
+                    <Text style={[styles.seasonChipText, effectiveSeason === 'summer' && styles.seasonChipTextActive]}>
+                      🌞 {t('plant.summerInterval').replace('🌞 ', '')}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.seasonChip, effectiveSeason === 'winter' && styles.seasonChipWinterActive]}
+                    onPress={() => setPlantSeasonOverride(plant.id, 'winter')}
+                  >
+                    <Text style={[styles.seasonChipText, effectiveSeason === 'winter' && styles.seasonChipTextActive]}>
+                      ❄️ {t('plant.winterInterval').replace('❄️ ', '')}
+                    </Text>
+                  </TouchableOpacity>
+                  {plant.seasonOverride && (
+                    <TouchableOpacity
+                      style={[styles.seasonChip, styles.seasonChipGlobal]}
+                      onPress={() => setPlantSeasonOverride(plant.id, null)}
+                    >
+                      <Text style={styles.seasonChipGlobalText}>↺ {t('plant.globalSeason')}</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+
+                <View style={styles.intervalSummaryRow}>
+                  <View style={styles.intervalSummaryItem}>
+                    <Text style={[styles.intervalSummaryLabel, { color: colors.textMuted }]}>🌞</Text>
+                    <Text style={[styles.intervalSummaryValue, { color: colors.text }, effectiveSeason === 'summer' && styles.intervalSummaryActive]}>
+                      {summerDays} {t('plant.daysUnit')}
+                    </Text>
+                  </View>
+                  <Text style={[styles.intervalSummarySep, { color: colors.border }]}>·</Text>
+                  <View style={styles.intervalSummaryItem}>
+                    <Text style={[styles.intervalSummaryLabel, { color: colors.textMuted }]}>❄️</Text>
+                    <Text style={[styles.intervalSummaryValue, { color: winterDays ? colors.text : colors.textMuted }, (effectiveSeason === 'winter' && !!winterDays) ? styles.intervalSummaryWinterActive : null]}>
+                      {winterDays ? `${winterDays} ${t('plant.daysUnit')}` : t('plant.winterNotSet')}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
               <InfoRow icon="calendar-outline" label={t('plant.wateringIntervalLabel')} value={`${plant.wateringIntervalDays} ${t('plant.daysUnit')}`} colors={colors} />
               <InfoRow icon="water-outline" label={t('plant.lastWatered')} value={formatDate(plant.lastWateredDate, language)} colors={colors} />
               <InfoRow icon="alarm-outline" label={t('plant.nextWatering')} value={formatDate(plant.nextWateringDate, language)} colors={colors} />
@@ -452,6 +600,199 @@ const styles = StyleSheet.create({
   },
   tabContent: {
     gap: 8,
+  },
+
+  // Season section
+  seasonSection: {
+    borderBottomWidth: 1,
+    paddingBottom: 12,
+    gap: 10,
+  },
+  seasonHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: 12,
+  },
+  seasonSectionLabel: {
+    flex: 1,
+    fontSize: 14,
+  },
+  editIntervalsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  editIntervalsBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  seasonToggleRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  seasonChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 10,
+    backgroundColor: '#f5f5f5',
+    borderWidth: 1.5,
+    borderColor: '#ddd',
+  },
+  seasonChipSummerActive: {
+    backgroundColor: '#f59e0b',
+    borderColor: '#f59e0b',
+  },
+  seasonChipWinterActive: {
+    backgroundColor: '#60a5fa',
+    borderColor: '#60a5fa',
+  },
+  seasonChipGlobal: {
+    backgroundColor: 'transparent',
+    borderColor: '#c8e6d4',
+    borderStyle: 'dashed',
+  },
+  seasonChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#555',
+  },
+  seasonChipTextActive: {
+    color: '#fff',
+  },
+  seasonChipGlobalText: {
+    fontSize: 12,
+    color: '#7dd1aa',
+    fontWeight: '600',
+  },
+  intervalSummaryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  intervalSummaryItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  intervalSummaryLabel: {
+    fontSize: 14,
+  },
+  intervalSummaryValue: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  intervalSummaryActive: {
+    fontWeight: '700',
+    color: '#f59e0b',
+  },
+  intervalSummaryWinterActive: {
+    fontWeight: '700',
+    color: '#60a5fa',
+  },
+  intervalSummarySep: {
+    fontSize: 16,
+  },
+
+  // Interval modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  intervalModal: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 24,
+    gap: 8,
+  },
+  intervalModalTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#2d4a30',
+    marginBottom: 8,
+  },
+  intervalFieldLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6b8c6b',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  intervalPresets: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 4,
+  },
+  intervalPreset: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 10,
+    backgroundColor: '#f0faf5',
+    borderWidth: 1.5,
+    borderColor: '#c8e6d4',
+  },
+  intervalPresetActive: {
+    backgroundColor: '#f59e0b',
+    borderColor: '#f59e0b',
+  },
+  intervalPresetWinterActive: {
+    backgroundColor: '#60a5fa',
+    borderColor: '#60a5fa',
+  },
+  intervalPresetText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#4db88a',
+  },
+  intervalPresetTextActive: {
+    color: '#fff',
+  },
+  intervalInput: {
+    borderWidth: 1,
+    borderColor: '#c8e6d4',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 15,
+    color: '#2d4a30',
+    marginTop: 4,
+  },
+  intervalHint: {
+    fontSize: 11,
+    color: '#9bada0',
+    marginTop: 2,
+  },
+  intervalModalBtns: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 8,
+  },
+  intervalCancelBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    alignItems: 'center',
+  },
+  intervalCancelBtnText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#888',
+  },
+  intervalSaveBtn: {
+    flex: 2,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: '#4db88a',
+    alignItems: 'center',
+  },
+  intervalSaveBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#fff',
   },
   infoRow: {
     flexDirection: 'row',

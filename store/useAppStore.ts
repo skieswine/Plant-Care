@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { addDays, format } from 'date-fns';
-import { Plant, Room, CareNote, WateringRecord, LightLevel, getPlantDisplayName } from './types';
+import { Plant, Room, CareNote, WateringRecord, LightLevel, Season, getPlantDisplayName } from './types';
 export { getPlantDisplayName };
 
 import { Language } from './types';
@@ -13,6 +13,7 @@ interface AppState {
   rooms: Room[];
   theme: 'light' | 'dark';
   language: Language;
+  season: Season;
 
   // Plant actions
   addPlant: (data: {
@@ -21,6 +22,7 @@ interface AppState {
     photoUri?: string;
     roomId: string;
     wateringIntervalDays: number;
+    winterWateringIntervalDays?: number;
     lightLevel: LightLevel;
     firstWateringDate?: string;
   }) => Plant;
@@ -32,6 +34,11 @@ interface AppState {
   deleteNote: (plantId: string, noteId: string) => void;
   deleteWateringRecord: (plantId: string, recordId: string) => void;
 
+  // Season actions
+  setSeason: (season: Season) => void;
+  setPlantSeasonOverride: (plantId: string, season: Season | null) => void;
+  updatePlantSeasonIntervals: (plantId: string, summer: number, winter: number | undefined) => void;
+
   // Room actions
   addRoom: (name: string, emoji: string) => Room;
   updateRoom: (id: string, name: string, emoji: string) => void;
@@ -40,6 +47,9 @@ interface AppState {
   // Settings
   setTheme: (theme: 'light' | 'dark') => void;
   setLanguage: (lang: Language) => void;
+
+  // Backup
+  restoreFromBackup: (data: { plants: Plant[]; rooms: Room[]; season: Season }) => void;
 
   // Helpers
   getPlantsByRoom: (roomId: string) => Plant[];
@@ -59,6 +69,7 @@ export const useAppStore = create<AppState>()(
       plants: [],
       theme: 'light' as const,
       language: 'uk' as Language,
+      season: 'summer' as Season,
       rooms: [
         { id: 'room-1', name: 'Вітальня', emoji: '🛋️', createdAt: new Date().toISOString() },
         { id: 'room-2', name: 'Спальня',  emoji: '🛏️', createdAt: new Date().toISOString() },
@@ -66,18 +77,24 @@ export const useAppStore = create<AppState>()(
       ],
 
       addPlant: (data) => {
+        const { season } = get();
         const now = new Date().toISOString();
         const lastWatered = data.firstWateringDate || now;
+        const summerInterval = data.wateringIntervalDays;
+        const winterInterval = data.winterWateringIntervalDays;
+        const activeInterval = (season === 'winter' && winterInterval) ? winterInterval : summerInterval;
         const newPlant: Plant = {
           id: generateId(),
           name: data.name,
           species: data.species,
           photoUri: data.photoUri,
           roomId: data.roomId,
-          wateringIntervalDays: data.wateringIntervalDays,
+          wateringIntervalDays: activeInterval,
+          summerWateringIntervalDays: summerInterval,
+          winterWateringIntervalDays: winterInterval,
           lightLevel: data.lightLevel,
           lastWateredDate: lastWatered,
-          nextWateringDate: computeNextWatering(lastWatered, data.wateringIntervalDays),
+          nextWateringDate: computeNextWatering(lastWatered, activeInterval),
           wateringHistory: [],
           notes: [],
           createdAt: now,
@@ -87,18 +104,23 @@ export const useAppStore = create<AppState>()(
       },
 
       updatePlant: (id, updates) => {
+        const { season } = get();
         set((state) => ({
           plants: state.plants.map((p) => {
             if (p.id !== id) return p;
-            const updated = { ...p, ...updates };
-            // Перераховуємо наступний полив якщо змінився інтервал або останній полив
-            if (updates.wateringIntervalDays || updates.lastWateredDate) {
-              updated.nextWateringDate = computeNextWatering(
-                updated.lastWateredDate,
-                updated.wateringIntervalDays
-              );
+            const merged = { ...p, ...updates };
+            const effectiveSeason = merged.seasonOverride ?? season;
+            // Recompute active interval if seasonal intervals changed
+            if (updates.summerWateringIntervalDays !== undefined || updates.winterWateringIntervalDays !== undefined) {
+              const summer = merged.summerWateringIntervalDays;
+              const winter = merged.winterWateringIntervalDays;
+              merged.wateringIntervalDays = (effectiveSeason === 'winter' && winter) ? winter : summer;
             }
-            return updated;
+            if (updates.wateringIntervalDays !== undefined || updates.lastWateredDate !== undefined ||
+                updates.summerWateringIntervalDays !== undefined || updates.winterWateringIntervalDays !== undefined) {
+              merged.nextWateringDate = computeNextWatering(merged.lastWateredDate, merged.wateringIntervalDays);
+            }
+            return merged;
           }),
         }));
       },
@@ -201,8 +223,64 @@ export const useAppStore = create<AppState>()(
         }));
       },
 
+      setSeason: (season) => {
+        set((state) => ({
+          season,
+          plants: state.plants.map((p) => {
+            if (p.seasonOverride) return p; // skip individually overridden plants
+            const summer = p.summerWateringIntervalDays ?? p.wateringIntervalDays;
+            const winter = p.winterWateringIntervalDays;
+            const newInterval = (season === 'winter' && winter) ? winter : summer;
+            return {
+              ...p,
+              wateringIntervalDays: newInterval,
+              nextWateringDate: computeNextWatering(p.lastWateredDate, newInterval),
+            };
+          }),
+        }));
+      },
+
+      setPlantSeasonOverride: (plantId, season) => {
+        set((state) => ({
+          plants: state.plants.map((p) => {
+            if (p.id !== plantId) return p;
+            const effectiveSeason = season ?? state.season;
+            const summer = p.summerWateringIntervalDays ?? p.wateringIntervalDays;
+            const winter = p.winterWateringIntervalDays;
+            const newInterval = (effectiveSeason === 'winter' && winter) ? winter : summer;
+            return {
+              ...p,
+              seasonOverride: season ?? undefined,
+              wateringIntervalDays: newInterval,
+              nextWateringDate: computeNextWatering(p.lastWateredDate, newInterval),
+            };
+          }),
+        }));
+      },
+
+      updatePlantSeasonIntervals: (plantId, summer, winter) => {
+        set((state) => ({
+          plants: state.plants.map((p) => {
+            if (p.id !== plantId) return p;
+            const effectiveSeason = p.seasonOverride ?? state.season;
+            const newInterval = (effectiveSeason === 'winter' && winter) ? winter : summer;
+            return {
+              ...p,
+              summerWateringIntervalDays: summer,
+              winterWateringIntervalDays: winter,
+              wateringIntervalDays: newInterval,
+              nextWateringDate: computeNextWatering(p.lastWateredDate, newInterval),
+            };
+          }),
+        }));
+      },
+
       setTheme: (theme) => set({ theme }),
       setLanguage: (language) => set({ language }),
+
+      restoreFromBackup: (data) => {
+        set({ plants: data.plants, rooms: data.rooms, season: data.season ?? 'summer' });
+      },
 
       getPlantsByRoom: (roomId) => {
         return get().plants.filter((p) => p.roomId === roomId);
@@ -248,6 +326,20 @@ export const useAppStore = create<AppState>()(
     {
       name: 'plantcare-storage',
       storage: createJSONStorage(() => AsyncStorage),
+      version: 1,
+      migrate: (persistedState: any, version: number) => {
+        if (version === 0) {
+          return {
+            ...persistedState,
+            season: 'summer',
+            plants: (persistedState.plants ?? []).map((p: any) => ({
+              ...p,
+              summerWateringIntervalDays: p.summerWateringIntervalDays ?? p.wateringIntervalDays,
+            })),
+          };
+        }
+        return persistedState;
+      },
     }
   )
 );

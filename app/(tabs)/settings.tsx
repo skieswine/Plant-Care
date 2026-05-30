@@ -1,13 +1,17 @@
 // app/(tabs)/settings.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Switch,
+  Share,
+  Alert,
+  Modal,
+  TextInput,
 } from 'react-native';
+import * as FileSystem from 'expo-file-system/legacy';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useAppStore } from '../../store/useAppStore';
@@ -23,10 +27,86 @@ export default function SettingsScreen() {
   const setTheme = useAppStore((s) => s.setTheme);
   const setLanguage = useAppStore((s) => s.setLanguage);
   const theme = useAppStore((s) => s.theme);
+  const plants = useAppStore((s) => s.plants);
+  const rooms = useAppStore((s) => s.rooms);
+  const season = useAppStore((s) => s.season);
+  const restoreFromBackup = useAppStore((s) => s.restoreFromBackup);
+
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importText, setImportText] = useState('');
+
+  const handleExport = async () => {
+    const backup = JSON.stringify({ plants, rooms, season, exportedAt: new Date().toISOString() }, null, 2);
+    try {
+      const path = FileSystem.documentDirectory + 'plantcare_backup.json';
+      await FileSystem.writeAsStringAsync(path, backup, { encoding: FileSystem.EncodingType.UTF8 });
+      await Share.share({ url: path, message: backup, title: 'PlantCare Backup' });
+    } catch {
+      await Share.share({ message: backup, title: 'PlantCare Backup' });
+    }
+  };
+
+  const handleImport = () => {
+    const trimmed = importText.trim();
+    if (!trimmed) return;
+    try {
+      const data = JSON.parse(trimmed);
+      if (!Array.isArray(data.plants) || !Array.isArray(data.rooms)) {
+        Alert.alert('', t('settings.importError'));
+        return;
+      }
+      Alert.alert(t('settings.importConfirmTitle'), t('settings.importConfirmMsg'), [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('settings.importBtn'),
+          style: 'destructive',
+          onPress: () => {
+            restoreFromBackup({ plants: data.plants, rooms: data.rooms, season: data.season ?? 'summer' });
+            setShowImportModal(false);
+            setImportText('');
+            Alert.alert('', t('settings.importSuccess'));
+          },
+        },
+      ]);
+    } catch {
+      Alert.alert('', t('settings.importError'));
+    }
+  };
 
   const s = makeStyles(colors);
 
   return (
+    <>
+    <Modal visible={showImportModal} transparent animationType="slide">
+      <View style={s.modalOverlay}>
+        <View style={s.importModal}>
+          <View style={s.importModalHeader}>
+            <Text style={s.importModalTitle}>{t('settings.importData')}</Text>
+            <TouchableOpacity onPress={() => { setShowImportModal(false); setImportText(''); }}>
+              <Ionicons name="close" size={24} color={colors.text} />
+            </TouchableOpacity>
+          </View>
+          <TextInput
+            style={[s.importInput, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
+            placeholder={t('settings.importPaste')}
+            placeholderTextColor={colors.textMuted}
+            value={importText}
+            onChangeText={setImportText}
+            multiline
+            autoFocus
+          />
+          <TouchableOpacity
+            style={[s.importBtn, !importText.trim() && s.importBtnDisabled]}
+            onPress={handleImport}
+            disabled={!importText.trim()}
+          >
+            <Ionicons name="cloud-download-outline" size={18} color="#fff" />
+            <Text style={s.importBtnText}>{t('settings.importBtn')}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+
     <ScrollView style={s.container} contentContainerStyle={s.content}>
       {/* Тема */}
       <Animated.View entering={FadeInDown.delay(0).springify()} style={s.section}>
@@ -91,6 +171,37 @@ export default function SettingsScreen() {
         <Text style={s.hint}>{t('settings.languageNote')}</Text>
       </Animated.View>
 
+      {/* Бекап */}
+      <Animated.View entering={FadeInDown.delay(120).springify()} style={s.section}>
+        <Text style={s.sectionTitle}>{t('settings.backupTitle')}</Text>
+        <View style={s.card}>
+          <TouchableOpacity style={s.backupOption} onPress={handleExport} activeOpacity={0.7}>
+            <View style={[s.backupIconWrap, { backgroundColor: '#4db88a22' }]}>
+              <Ionicons name="cloud-upload-outline" size={22} color="#4db88a" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={s.backupLabel}>{t('settings.exportData')}</Text>
+              <Text style={s.backupSub}>{t('settings.exportDataSub')}</Text>
+            </View>
+            <Ionicons name="share-outline" size={20} color={colors.textMuted} />
+          </TouchableOpacity>
+
+          <View style={s.divider} />
+
+          <TouchableOpacity style={s.backupOption} onPress={() => setShowImportModal(true)} activeOpacity={0.7}>
+            <View style={[s.backupIconWrap, { backgroundColor: '#60a5fa22' }]}>
+              <Ionicons name="cloud-download-outline" size={22} color="#60a5fa" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={s.backupLabel}>{t('settings.importData')}</Text>
+              <Text style={s.backupSub}>{t('settings.importDataSub')}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+          </TouchableOpacity>
+        </View>
+        <Text style={s.hint}>{t('settings.backupNote')}</Text>
+      </Animated.View>
+
       {/* Про додаток */}
       <Animated.View entering={FadeInDown.delay(160).springify()} style={s.section}>
         <Text style={s.sectionTitle}>{t('settings.about')}</Text>
@@ -106,6 +217,7 @@ export default function SettingsScreen() {
         </View>
       </Animated.View>
     </ScrollView>
+    </>
   );
 }
 
@@ -177,6 +289,45 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       color: colors.textMuted,
       paddingLeft: 4,
     },
+
+    // Backup
+    backupOption: {
+      flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16,
+    },
+    backupIconWrap: {
+      width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center',
+    },
+    backupLabel: {
+      fontSize: 15, fontWeight: '600', color: colors.text,
+    },
+    backupSub: {
+      fontSize: 12, color: colors.textMuted, marginTop: 2,
+    },
+
+    // Import modal
+    modalOverlay: {
+      flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end',
+    },
+    importModal: {
+      backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24,
+      padding: 24, gap: 16,
+    },
+    importModalHeader: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    },
+    importModalTitle: {
+      fontSize: 18, fontWeight: '700', color: colors.text,
+    },
+    importInput: {
+      borderRadius: 14, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 12,
+      fontSize: 13, minHeight: 140, textAlignVertical: 'top',
+    },
+    importBtn: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+      gap: 8, backgroundColor: '#4db88a', paddingVertical: 14, borderRadius: 14,
+    },
+    importBtnDisabled: { backgroundColor: '#c8e6d4' },
+    importBtnText: { fontSize: 15, fontWeight: '700', color: '#fff' },
 
     // About
     aboutRow: {

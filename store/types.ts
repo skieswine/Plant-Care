@@ -2,6 +2,7 @@
 
 export type LightLevel = 'shade' | 'partial' | 'direct';
 export type Language = 'uk' | 'en' | 'de' | 'ru';
+export type Season = 'summer' | 'winter';
 
 export interface WateringRecord {
   id: string;
@@ -18,13 +19,16 @@ export interface CareNote {
 
 export interface Plant {
   id: string;
-  name?: string;       // опціональна власна назва
-  species?: string;    // вид рослини (Монстера, Кактус тощо)
+  name?: string;
+  species?: string;
   photoUri?: string;
   roomId: string;
-  wateringIntervalDays: number;
-  lastWateredDate: string;    // ISO string
-  nextWateringDate: string;   // ISO string
+  wateringIntervalDays: number;     // active interval (auto-computed from season)
+  summerWateringIntervalDays: number;
+  winterWateringIntervalDays?: number;
+  seasonOverride?: Season;          // if set — ignores global season
+  lastWateredDate: string;
+  nextWateringDate: string;
   lightLevel: LightLevel;
   wateringHistory: WateringRecord[];
   notes: CareNote[];
