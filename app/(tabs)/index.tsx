@@ -45,7 +45,7 @@ export default function HomeScreen() {
   const deleteRoom = useAppStore((s) => s.deleteRoom);
   const swipeableRefs = useRef<Map<string, Swipeable>>(new Map());
 
-  const [selectedPlant, setSelectedPlant] = useState<Plant | null>(null);
+  const [selectedPlantId, setSelectedPlantId] = useState<string | null>(null);
   const [freqFilter, setFreqFilter] = useState<FrequencyFilter>('all');
   const [speciesFilter, setSpeciesFilter] = useState<string | null>(null);
 
@@ -75,8 +75,8 @@ export default function HomeScreen() {
     }).filter(({ plants }) => plants.length > 0);
   }, [rooms, plants, freqFilter, speciesFilter]);
 
-  const handlePlantPress = useCallback((plant: Plant) => setSelectedPlant(plant), []);
-  const handleCloseCard = useCallback(() => setSelectedPlant(null), []);
+  const handlePlantPress = useCallback((plant: Plant) => setSelectedPlantId(plant.id), []);
+  const handleCloseCard = useCallback(() => setSelectedPlantId(null), []);
 
   const handleDeleteRoom = useCallback((room: Room) => {
     const roomPlants = plants.filter((p) => p.roomId === room.id);
@@ -300,7 +300,7 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </ScrollView>
 
-      {selectedPlant && <PlantCard plant={selectedPlant} onClose={handleCloseCard} />}
+      {selectedPlantId && <PlantCard plantId={selectedPlantId} onClose={handleCloseCard} />}
     </View>
   );
 }

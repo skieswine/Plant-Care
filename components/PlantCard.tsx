@@ -28,11 +28,12 @@ import { translateSpecies } from '../constants/plantSpecies';
 type Tab = 'info' | 'history' | 'notes';
 
 interface Props {
-  plant: Plant | null;
+  plantId: string | null;
   onClose: () => void;
 }
 
-export function PlantCard({ plant, onClose }: Props) {
+export function PlantCard({ plantId, onClose }: Props) {
+  const plant = useAppStore((s) => s.plants.find((p) => p.id === plantId) ?? null);
   const router = useRouter();
   const bottomSheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ['60%', '92%'], []);

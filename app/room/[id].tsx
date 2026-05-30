@@ -17,7 +17,7 @@ import { PlantCard } from '../../components/PlantCard';
 export default function RoomScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const [selectedPlant, setSelectedPlant] = useState<Plant | null>(null);
+  const [selectedPlantId, setSelectedPlantId] = useState<string | null>(null);
 
   const room = useAppStore((s) => s.rooms.find((r) => r.id === id));
   const allPlants = useAppStore((s) => s.plants);
@@ -43,11 +43,11 @@ export default function RoomScreen() {
   };
 
   const handlePlantPress = useCallback((plant: Plant) => {
-    setSelectedPlant(plant);
+    setSelectedPlantId(plant.id);
   }, []);
 
   const handleCloseCard = useCallback(() => {
-    setSelectedPlant(null);
+    setSelectedPlantId(null);
   }, []);
 
   if (!room) return null;
@@ -111,8 +111,8 @@ export default function RoomScreen() {
       )}
 
       {/* Картка рослини */}
-      {selectedPlant && (
-        <PlantCard plant={selectedPlant} onClose={handleCloseCard} />
+      {selectedPlantId && (
+        <PlantCard plantId={selectedPlantId} onClose={handleCloseCard} />
       )}
     </View>
   );
