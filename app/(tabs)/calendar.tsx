@@ -51,11 +51,7 @@ export default function CalendarScreen() {
   const { colors, isDark } = useTheme();
   const { t, language } = useT();
 
-  // Switch calendar locale when language changes
-  // ✅ Set locale SYNCHRONOUSLY before Calendar renders (not in useEffect)
-  // This fixes the one-step-behind locale shift bug
   LocaleConfig.defaultLocale = language;
-
 
   const markedDates = useMemo(() => {
     const events = getWateringEvents();
@@ -72,11 +68,11 @@ export default function CalendarScreen() {
     result[selectedDate] = {
       ...(result[selectedDate] || {}),
       selected: true,
-      selectedColor: '#4db88a',
+      selectedColor: colors.primary,
     };
 
     return result;
-  }, [getWateringEvents, selectedDate]);
+  }, [getWateringEvents, selectedDate, colors]);
 
   // Рослини, що потрібно полити у вибрану дату
   const plantsForDate = useMemo(() => {
@@ -102,20 +98,22 @@ export default function CalendarScreen() {
     return plants.filter((p) => new Date(p.nextWateringDate) <= today);
   }, [plants]);
 
+  const s = makeStyles(colors);
+
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.background }} showsVerticalScrollIndicator={false}>
+    <ScrollView style={s.container} showsVerticalScrollIndicator={false}>
       {/* Термінові сьогодні */}
       {urgentPlants.length > 0 && (
-        <View style={[styles.urgentSection, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
-          <View style={styles.urgentHeader}>
+        <View style={s.urgentSection}>
+          <View style={s.urgentHeader}>
             <Ionicons name="alert-circle" size={18} color={colors.urgent} />
-            <Text style={[styles.urgentTitle, { color: colors.text }]}>{t('calendar.urgentTitle')}</Text>
+            <Text style={s.urgentTitle}>{t('calendar.urgentTitle')}</Text>
           </View>
           {urgentPlants.map((plant) => (
-            <View key={plant.id} style={[styles.urgentItem, { backgroundColor: colors.surfaceSecondary }]}>
+            <View key={plant.id} style={s.urgentItem}>
               <Text style={{ fontSize: 20 }}>🌿</Text>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.plantName, { color: colors.text }]}>{getPlantDisplayName(plant)}</Text>
+                <Text style={s.plantName}>{getPlantDisplayName(plant)}</Text>
               </View>
               <CountdownBadge nextWateringDate={plant.nextWateringDate} />
             </View>
@@ -123,8 +121,8 @@ export default function CalendarScreen() {
         </View>
       )}
 
-      {/* Календар — key примусово перемонтовує при зміні мови або теми */}
-      <View style={[styles.calendarWrapper, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
+      {/* Календар */}
+      <View style={s.calendarWrapper}>
         <Calendar
           key={`${language}-${colors.background}`}
           onDayPress={(day: any) => setSelectedDate(day.dateString)}
@@ -136,17 +134,17 @@ export default function CalendarScreen() {
             textSectionTitleColor: colors.textMuted,
             selectedDayBackgroundColor: colors.primary,
             selectedDayTextColor: '#fff',
-            todayTextColor: colors.primary,
+            todayTextColor: colors.primaryLight,
             dayTextColor: colors.text,
-            textDisabledColor: colors.border,
-            dotColor: colors.primary,
+            textDisabledColor: isDark ? colors.surfaceSecondary : colors.border,
+            dotColor: colors.primaryLight,
             selectedDotColor: '#fff',
             arrowColor: colors.primary,
             monthTextColor: colors.text,
             indicatorColor: colors.primary,
-            textDayFontWeight: '500',
-            textMonthFontWeight: '700',
-            textDayHeaderFontWeight: '600',
+            textDayFontWeight: '600',
+            textMonthFontWeight: '800',
+            textDayHeaderFontWeight: '700',
             textDayFontSize: 14,
             textMonthFontSize: 16,
             textDayHeaderFontSize: 12,
@@ -155,61 +153,64 @@ export default function CalendarScreen() {
       </View>
 
       {/* Деталі вибраного дня */}
-      <View style={[styles.dayDetails, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
-        <Text style={[styles.dayTitle, { color: colors.text }]}>
+      <View style={s.dayDetails}>
+        <Text style={s.dayTitle}>
           {format(new Date(selectedDate), "d MMMM yyyy", { locale: dateFnsLocales[language] })}
         </Text>
 
         {plantsForDate.length > 0 && (
-          <View style={styles.detailSection}>
-            <Text style={[styles.detailSectionTitle, { color: colors.textSecondary }]}>{t('calendar.waterOn')}</Text>
+          <View style={s.detailSection}>
+            <Text style={s.detailSectionTitle}>{t('calendar.waterOn')}</Text>
             {plantsForDate.map((plant) => (
-              <View key={plant.id} style={[styles.detailItem, { backgroundColor: colors.surfaceSecondary }]}>
+              <View key={plant.id} style={s.detailItem}>
                 <Ionicons name="water-outline" size={16} color={colors.primaryLight} />
-                <Text style={[styles.detailPlantName, { color: colors.text }]}>{getPlantDisplayName(plant)}</Text>
+                <Text style={s.detailPlantName}>{getPlantDisplayName(plant)}</Text>
               </View>
             ))}
           </View>
         )}
 
         {wateredOnDate.length > 0 && (
-          <View style={styles.detailSection}>
-            <Text style={[styles.detailSectionTitle, { color: colors.textSecondary }]}>{t('calendar.wateredOn')}</Text>
+          <View style={s.detailSection}>
+            <Text style={s.detailSectionTitle}>{t('calendar.wateredOn')}</Text>
             {wateredOnDate.map((plant) => (
-              <View key={plant.id} style={[styles.detailItem, { backgroundColor: colors.surfaceSecondary }]}>
-                <Ionicons name="checkmark-circle-outline" size={16} color={colors.primary} />
-                <Text style={[styles.detailPlantName, { color: colors.text }]}>{getPlantDisplayName(plant)}</Text>
+              <View key={plant.id} style={s.detailItem}>
+                <Ionicons name="checkmark-circle-outline" size={16} color={colors.primaryLight} />
+                <Text style={s.detailPlantName}>{getPlantDisplayName(plant)}</Text>
               </View>
             ))}
           </View>
         )}
 
         {plantsForDate.length === 0 && wateredOnDate.length === 0 && (
-          <Text style={[styles.emptyDay, { color: colors.textMuted }]}>{t('calendar.nothingToday')}</Text>
+          <Text style={s.emptyDay}>{t('calendar.nothingToday')}</Text>
         )}
       </View>
 
-      {/* Легенда — красиві кольорові плашки */}
-      <View style={[styles.legend, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
-        <Text style={[styles.legendTitle, { color: colors.textSecondary }]}>{t('calendar.legendTitle')}</Text>
-        <View style={styles.legendItems}>
+      {/* Легенда */}
+      <View style={s.legend}>
+        <Text style={s.legendTitle}>{t('calendar.legendTitle')}</Text>
+        <View style={s.legendItems}>
           <LegendPill
-            color={colors.primary}
+            color={colors.primaryLight}
             icon="water"
             label={t('calendar.legendWatered')}
             colors={colors}
+            s={s}
           />
           <LegendPill
-            color={colors.primaryLight}
+            color={colors.primary}
             icon="calendar-outline"
             label={t('calendar.legendPlanned')}
             colors={colors}
+            s={s}
           />
           <LegendPill
             color={colors.urgent}
             icon="alert-circle"
             label={t('calendar.legendOverdue')}
             colors={colors}
+            s={s}
           />
         </View>
       </View>
@@ -218,150 +219,172 @@ export default function CalendarScreen() {
 }
 
 function LegendPill({
-  color, icon, label, colors,
+  color, icon, label, colors, s,
 }: {
   color: string;
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
   colors: any;
+  s: any;
 }) {
   return (
-    <View style={[styles.legendPill, { backgroundColor: color + '22', borderColor: color + '55' }]}>
-      <View style={[styles.legendPillDot, { backgroundColor: color }]}>
+    <View style={[s.legendPill, { backgroundColor: color + '12', borderColor: color + '33' }]}>
+      <View style={[s.legendPillDot, { backgroundColor: color }]}>
         <Ionicons name={icon} size={11} color="#fff" />
       </View>
-      <Text style={[styles.legendPillText, { color }]}>{label}</Text>
+      <Text style={[s.legendPillText, { color }]}>{label}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#faf8f3',
-  },
-  urgentSection: {
-    margin: 16,
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: '#ef4444',
-    gap: 10,
-    shadowColor: '#ef4444',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  urgentHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  urgentTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#ef4444',
-  },
-  urgentItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  plantName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#2d4a30',
-  },
-  calendarWrapper: {
-    marginHorizontal: 16,
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  dayDetails: {
-    margin: 16,
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
-    gap: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  dayTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#2d4a30',
-  },
-  detailSection: {
-    gap: 6,
-  },
-  detailSectionTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#6b8c6b',
-  },
-  detailItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 4,
-  },
-  detailPlantName: {
-    fontSize: 14,
-    color: '#2d4a30',
-  },
-  emptyDay: {
-    color: '#9bada0',
-    fontSize: 14,
-    textAlign: 'center',
-    paddingVertical: 12,
-  },
-  legend: {
-    marginHorizontal: 16,
-    marginBottom: 32,
-    borderRadius: 18,
-    borderWidth: 1,
-    padding: 16,
-    gap: 12,
-  },
-  legendTitle: {
-    fontSize: 11,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-  legendItems: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  legendPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 7,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-  legendPillDot: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  legendPillText: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    urgentSection: {
+      margin: 16,
+      backgroundColor: colors.surface,
+      borderRadius: 20,
+      padding: 16,
+      borderLeftWidth: 4,
+      borderLeftColor: colors.urgent,
+      gap: 12,
+      shadowColor: colors.urgent,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    urgentHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    urgentTitle: {
+      fontSize: 14,
+      fontWeight: '800',
+      color: colors.urgent,
+      letterSpacing: -0.2,
+    },
+    urgentItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      backgroundColor: colors.surfaceSecondary,
+      padding: 10,
+      borderRadius: 12,
+    },
+    plantName: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    calendarWrapper: {
+      marginHorizontal: 16,
+      borderRadius: 24,
+      overflow: 'hidden',
+      shadowColor: colors.text,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.03,
+      shadowRadius: 10,
+      elevation: 4,
+      borderWidth: 1,
+      borderColor: colors.borderLight,
+    },
+    dayDetails: {
+      margin: 16,
+      backgroundColor: colors.surface,
+      borderRadius: 20,
+      padding: 18,
+      gap: 14,
+      shadowColor: colors.text,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.02,
+      shadowRadius: 8,
+      elevation: 2,
+      borderWidth: 1,
+      borderColor: colors.borderLight,
+    },
+    dayTitle: {
+      fontSize: 16,
+      fontWeight: '800',
+      color: colors.text,
+      letterSpacing: -0.3,
+    },
+    detailSection: {
+      gap: 8,
+    },
+    detailSectionTitle: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: colors.textSecondary,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+    detailItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      backgroundColor: colors.surfaceSecondary,
+      borderRadius: 12,
+    },
+    detailPlantName: {
+      fontSize: 14,
+      color: colors.text,
+      fontWeight: '600',
+    },
+    emptyDay: {
+      color: colors.textMuted,
+      fontSize: 14,
+      textAlign: 'center',
+      paddingVertical: 12,
+      fontWeight: '600',
+    },
+    legend: {
+      marginHorizontal: 16,
+      marginBottom: 32,
+      borderRadius: 24,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.borderLight,
+      padding: 16,
+      gap: 12,
+    },
+    legendTitle: {
+      fontSize: 11,
+      fontWeight: '800',
+      textTransform: 'uppercase',
+      letterSpacing: 0.8,
+      color: colors.textSecondary,
+    },
+    legendItems: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+    },
+    legendPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 16,
+      borderWidth: 1,
+    },
+    legendPillDot: {
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    legendPillText: {
+      fontSize: 12,
+      fontWeight: '700',
+    },
+  });
+}

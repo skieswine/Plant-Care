@@ -37,7 +37,7 @@ export function PlantCard({ plantId, onClose }: Props) {
   const plant = useAppStore((s) => s.plants.find((p) => p.id === plantId) ?? null);
   const router = useRouter();
   const bottomSheetRef = useRef<BottomSheet>(null);
-  const snapPoints = useMemo(() => ['60%', '92%'], []);
+  const snapPoints = useMemo(() => ['64%', '94%'], []);
   const [activeTab, setActiveTab] = useState<Tab>('info');
   const [noteText, setNoteText] = useState('');
   const [showWateringAnim, setShowWateringAnim] = useState(false);
@@ -116,6 +116,8 @@ export function PlantCard({ plantId, onClose }: Props) {
     );
   }, [plant, deletePlant, onClose, t]);
 
+  const s = makeStyles(colors);
+
   if (!plant) return null;
 
   const effectiveSeason = plant.seasonOverride ?? globalSeason;
@@ -129,10 +131,10 @@ export function PlantCard({ plantId, onClose }: Props) {
   };
 
   const saveIntervals = () => {
-    const s = parseInt(editSummer, 10);
-    const w = editWinter.trim() ? parseInt(editWinter, 10) : undefined;
-    if (!s || s < 1) return;
-    updatePlantSeasonIntervals(plant.id, s, w && w >= 1 ? w : undefined);
+    const sum = parseInt(editSummer, 10);
+    const win = editWinter.trim() ? parseInt(editWinter, 10) : undefined;
+    if (!sum || sum < 1) return;
+    updatePlantSeasonIntervals(plant.id, sum, win && win >= 1 ? win : undefined);
     setShowIntervalModal(false);
   };
 
@@ -146,65 +148,65 @@ export function PlantCard({ plantId, onClose }: Props) {
       )}
 
       <Modal visible={showIntervalModal} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.intervalModal}>
-            <Text style={styles.intervalModalTitle}>{t('plant.intervalModalTitle')}</Text>
+        <View style={s.modalOverlay}>
+          <View style={s.intervalModal}>
+            <Text style={s.intervalModalTitle}>{t('plant.intervalModalTitle')}</Text>
 
-            <Text style={styles.intervalFieldLabel}>{t('plant.summerIntervalLabel')}</Text>
-            <View style={styles.intervalPresets}>
+            <Text style={s.intervalFieldLabel}>{t('plant.summerIntervalLabel')}</Text>
+            <View style={s.intervalPresets}>
               {[3, 7, 14, 30].map((d) => (
                 <TouchableOpacity
                   key={d}
-                  style={[styles.intervalPreset, editSummer === String(d) && styles.intervalPresetActive]}
+                  style={[s.intervalPreset, editSummer === String(d) && s.intervalPresetActive]}
                   onPress={() => setEditSummer(String(d))}
                 >
-                  <Text style={[styles.intervalPresetText, editSummer === String(d) && styles.intervalPresetTextActive]}>
+                  <Text style={[s.intervalPresetText, editSummer === String(d) && s.intervalPresetTextActive]}>
                     {d} {t('plant.daysUnit')}
                   </Text>
                 </TouchableOpacity>
               ))}
             </View>
             <TextInput
-              style={styles.intervalInput}
+              style={s.intervalInput}
               value={editSummer}
               onChangeText={setEditSummer}
               keyboardType="numeric"
               maxLength={3}
               placeholder="..."
-              placeholderTextColor="#aaa"
+              placeholderTextColor={colors.textMuted}
             />
 
-            <Text style={[styles.intervalFieldLabel, { marginTop: 16 }]}>{t('plant.winterIntervalLabel')}</Text>
-            <View style={styles.intervalPresets}>
+            <Text style={[s.intervalFieldLabel, { marginTop: 16 }]}>{t('plant.winterIntervalLabel')}</Text>
+            <View style={s.intervalPresets}>
               {[7, 14, 21, 30].map((d) => (
                 <TouchableOpacity
                   key={d}
-                  style={[styles.intervalPreset, editWinter === String(d) && styles.intervalPresetWinterActive]}
+                  style={[s.intervalPreset, editWinter === String(d) && s.intervalPresetWinterActive]}
                   onPress={() => setEditWinter(String(d))}
                 >
-                  <Text style={[styles.intervalPresetText, editWinter === String(d) && styles.intervalPresetTextActive]}>
+                  <Text style={[s.intervalPresetText, editWinter === String(d) && s.intervalPresetTextActive]}>
                     {d} {t('plant.daysUnit')}
                   </Text>
                 </TouchableOpacity>
               ))}
             </View>
             <TextInput
-              style={styles.intervalInput}
+              style={s.intervalInput}
               value={editWinter}
               onChangeText={setEditWinter}
               keyboardType="numeric"
               maxLength={3}
               placeholder={t('plant.winterNotSet')}
-              placeholderTextColor="#aaa"
+              placeholderTextColor={colors.textMuted}
             />
-            <Text style={styles.intervalHint}>{t('plant.winterIntervalHint')}</Text>
+            <Text style={s.intervalHint}>{t('plant.winterIntervalHint')}</Text>
 
-            <View style={styles.intervalModalBtns}>
-              <TouchableOpacity style={styles.intervalCancelBtn} onPress={() => setShowIntervalModal(false)}>
-                <Text style={styles.intervalCancelBtnText}>{t('plant.cancel')}</Text>
+            <View style={s.intervalModalBtns}>
+              <TouchableOpacity style={s.intervalCancelBtn} onPress={() => setShowIntervalModal(false)}>
+                <Text style={s.intervalCancelBtnText}>{t('plant.cancel')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.intervalSaveBtn} onPress={saveIntervals}>
-                <Text style={styles.intervalSaveBtnText}>{t('plant.saveIntervals')}</Text>
+              <TouchableOpacity style={s.intervalSaveBtn} onPress={saveIntervals}>
+                <Text style={s.intervalSaveBtnText}>{t('plant.saveIntervals')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -217,70 +219,72 @@ export function PlantCard({ plantId, onClose }: Props) {
         snapPoints={snapPoints}
         onChange={handleSheetChanges}
         enablePanDownToClose
-        backgroundStyle={[styles.sheetBackground, { backgroundColor: colors.surface }]}
-        handleIndicatorStyle={styles.handleIndicator}
+        backgroundStyle={s.sheetBackground}
+        handleIndicatorStyle={s.handleIndicator}
       >
         <BottomSheetScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={s.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
           {/* Header */}
-          <View style={styles.header}>
+          <View style={s.header}>
             {plant.photoUri ? (
-              <Image source={{ uri: plant.photoUri }} style={styles.photo} />
+              <Image source={{ uri: plant.photoUri }} style={s.photo} />
             ) : (
-              <View style={styles.photoPlaceholder}>
+              <View style={s.photoPlaceholder}>
                 <Text style={{ fontSize: 40 }}>🪴</Text>
               </View>
             )}
-            <View style={styles.headerInfo}>
-              <Text style={styles.plantName}>{getPlantDisplayName(plant)}</Text>
+            <View style={s.headerInfo}>
+              <Text style={s.plantName}>{getPlantDisplayName(plant)}</Text>
               {plant.species && plant.name && (
-                <Text style={styles.speciesLabel}>🌿 {translateSpecies(plant.species, language)}</Text>
+                <Text style={s.speciesLabel}>🌿 {translateSpecies(plant.species, language)}</Text>
               )}
-              <LightLevelIcon level={plant.lightLevel} showLabel />
-              <CountdownBadge nextWateringDate={plant.nextWateringDate} />
+              <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', marginTop: 2 }}>
+                <LightLevelIcon level={plant.lightLevel} showLabel />
+                <CountdownBadge nextWateringDate={plant.nextWateringDate} />
+              </View>
             </View>
-            <View style={styles.headerActions}>
+            <View style={s.headerActions}>
               <TouchableOpacity
                 onPress={() => { onClose(); setTimeout(() => router.push(`/plant/${plant.id}`), 300); }}
-                style={styles.editBtn}
+                style={s.editBtn}
               >
-                <Ionicons name="create-outline" size={20} color="#4db88a" />
+                <Ionicons name="create-outline" size={20} color={colors.primary} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={onDelete} style={styles.deleteBtn}>
-                <Ionicons name="trash-outline" size={20} color="#ef4444" />
+              <TouchableOpacity onPress={onDelete} style={s.deleteBtn}>
+                <Ionicons name="trash-outline" size={20} color={colors.urgent} />
               </TouchableOpacity>
             </View>
           </View>
 
           {/* Кнопки дій */}
-          <View style={styles.actionsRow}>
-            <TouchableOpacity style={[styles.waterBtn, { backgroundColor: colors.primary }]} onPress={onWater} activeOpacity={0.8}>
+          <View style={s.actionsRow}>
+            <TouchableOpacity style={[s.waterBtn, { backgroundColor: colors.primary }]} onPress={onWater} activeOpacity={0.8}>
               <Ionicons name="water" size={20} color="#fff" />
-              <Text style={styles.waterBtnText}>{t('plant.water')}</Text>
+              <Text style={s.waterBtnText}>{t('plant.water')}</Text>
             </TouchableOpacity>
-            <View style={styles.postponeGroup}>
-              <TouchableOpacity style={styles.postponeBtn} onPress={() => onPostpone(1)} activeOpacity={0.8}>
-                <Ionicons name="time-outline" size={16} color="#a07850" />
-                <Text style={styles.postponeBtnText}>{t('plant.postpone1')}</Text>
+            <View style={s.postponeGroup}>
+              <TouchableOpacity style={s.postponeBtn} onPress={() => onPostpone(1)} activeOpacity={0.8}>
+                <Ionicons name="time-outline" size={16} color={colors.textSecondary} />
+                <Text style={s.postponeBtnText}>{t('plant.postpone1')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.postponeBtn} onPress={() => onPostpone(2)} activeOpacity={0.8}>
-                <Ionicons name="time-outline" size={16} color="#a07850" />
-                <Text style={styles.postponeBtnText}>{t('plant.postpone2')}</Text>
+              <TouchableOpacity style={s.postponeBtn} onPress={() => onPostpone(2)} activeOpacity={0.8}>
+                <Ionicons name="time-outline" size={16} color={colors.textSecondary} />
+                <Text style={s.postponeBtnText}>{t('plant.postpone2')}</Text>
               </TouchableOpacity>
             </View>
           </View>
 
           {/* Вкладки */}
-          <View style={[styles.tabs, { borderBottomColor: colors.borderLight }]}>
+          <View style={s.tabs}>
             {(['info', 'history', 'notes'] as Tab[]).map((tab) => (
               <TouchableOpacity
                 key={tab}
-                style={[styles.tab, activeTab === tab && styles.tabActive]}
+                style={[s.tab, activeTab === tab && s.tabActive]}
                 onPress={() => setActiveTab(tab)}
               >
-                <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
+                <Text style={[s.tabText, activeTab === tab && s.tabTextActive]}>
                   {tab === 'info' ? t('plant.tabInfo') : tab === 'history' ? t('plant.tabHistory') : t('plant.tabNotes')}
                 </Text>
               </TouchableOpacity>
@@ -289,108 +293,108 @@ export function PlantCard({ plantId, onClose }: Props) {
 
           {/* Вкладка: Інфо */}
           {activeTab === 'info' && (
-            <View style={styles.tabContent}>
-              {plant.species && <InfoRow icon="leaf" label={t('plant.species_info')} value={translateSpecies(plant.species, language)} colors={colors} />}
+            <View style={s.tabContent}>
+              {plant.species && <InfoRow icon="leaf" label={t('plant.species_info')} value={translateSpecies(plant.species, language)} colors={colors} s={s} />}
 
               {/* Season section */}
-              <View style={[styles.seasonSection, { borderColor: colors.borderLight }]}>
-                <View style={styles.seasonHeaderRow}>
+              <View style={s.seasonSection}>
+                <View style={s.seasonHeaderRow}>
                   <Ionicons name="partly-sunny-outline" size={18} color={colors.primaryLight} style={{ width: 26 }} />
-                  <Text style={[styles.seasonSectionLabel, { color: colors.textSecondary }]}>{t('plant.seasonLabel')}</Text>
-                  <TouchableOpacity onPress={openIntervalModal} style={styles.editIntervalsBtn}>
+                  <Text style={[s.seasonSectionLabel, { color: colors.text }]}>{t('plant.seasonLabel')}</Text>
+                  <TouchableOpacity onPress={openIntervalModal} style={s.editIntervalsBtn}>
                     <Ionicons name="create-outline" size={16} color={colors.primaryLight} />
-                    <Text style={[styles.editIntervalsBtnText, { color: colors.primaryLight }]}>{t('plant.editIntervals')}</Text>
+                    <Text style={[s.editIntervalsBtnText, { color: colors.primaryLight }]}>{t('plant.editIntervals')}</Text>
                   </TouchableOpacity>
                 </View>
 
-                <View style={styles.seasonToggleRow}>
+                <View style={s.seasonToggleRow}>
                   <TouchableOpacity
-                    style={[styles.seasonChip, effectiveSeason === 'summer' && styles.seasonChipSummerActive]}
+                    style={[s.seasonChip, effectiveSeason === 'summer' && s.seasonChipSummerActive]}
                     onPress={() => setPlantSeasonOverride(plant.id, 'summer')}
                   >
-                    <Text style={[styles.seasonChipText, effectiveSeason === 'summer' && styles.seasonChipTextActive]}>
+                    <Text style={[s.seasonChipText, effectiveSeason === 'summer' && s.seasonChipTextActive]}>
                       🌞 {t('plant.summerInterval').replace('🌞 ', '')}
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={[styles.seasonChip, effectiveSeason === 'winter' && styles.seasonChipWinterActive]}
+                    style={[s.seasonChip, effectiveSeason === 'winter' && s.seasonChipWinterActive]}
                     onPress={() => setPlantSeasonOverride(plant.id, 'winter')}
                   >
-                    <Text style={[styles.seasonChipText, effectiveSeason === 'winter' && styles.seasonChipTextActive]}>
+                    <Text style={[s.seasonChipText, effectiveSeason === 'winter' && s.seasonChipTextActive]}>
                       ❄️ {t('plant.winterInterval').replace('❄️ ', '')}
                     </Text>
                   </TouchableOpacity>
                   {plant.seasonOverride && (
                     <TouchableOpacity
-                      style={[styles.seasonChip, styles.seasonChipGlobal]}
+                      style={[s.seasonChip, s.seasonChipGlobal]}
                       onPress={() => setPlantSeasonOverride(plant.id, null)}
                     >
-                      <Text style={styles.seasonChipGlobalText}>↺ {t('plant.globalSeason')}</Text>
+                      <Text style={s.seasonChipGlobalText}>↺ {t('plant.globalSeason')}</Text>
                     </TouchableOpacity>
                   )}
                 </View>
 
-                <View style={styles.intervalSummaryRow}>
-                  <View style={styles.intervalSummaryItem}>
-                    <Text style={[styles.intervalSummaryLabel, { color: colors.textMuted }]}>🌞</Text>
-                    <Text style={[styles.intervalSummaryValue, { color: colors.text }, effectiveSeason === 'summer' && styles.intervalSummaryActive]}>
+                <View style={s.intervalSummaryRow}>
+                  <View style={s.intervalSummaryItem}>
+                    <Text style={[s.intervalSummaryLabel, { color: colors.textMuted }]}>🌞</Text>
+                    <Text style={[s.intervalSummaryValue, { color: colors.text }, effectiveSeason === 'summer' && s.intervalSummaryActive]}>
                       {summerDays} {t('plant.daysUnit')}
                     </Text>
                   </View>
-                  <Text style={[styles.intervalSummarySep, { color: colors.border }]}>·</Text>
-                  <View style={styles.intervalSummaryItem}>
-                    <Text style={[styles.intervalSummaryLabel, { color: colors.textMuted }]}>❄️</Text>
-                    <Text style={[styles.intervalSummaryValue, { color: winterDays ? colors.text : colors.textMuted }, (effectiveSeason === 'winter' && !!winterDays) ? styles.intervalSummaryWinterActive : null]}>
+                  <Text style={[s.intervalSummarySep, { color: colors.border }]}>·</Text>
+                  <View style={s.intervalSummaryItem}>
+                    <Text style={[s.intervalSummaryLabel, { color: colors.textMuted }]}>❄️</Text>
+                    <Text style={[s.intervalSummaryValue, { color: winterDays ? colors.text : colors.textMuted }, (effectiveSeason === 'winter' && !!winterDays) ? s.intervalSummaryWinterActive : null]}>
                       {winterDays ? `${winterDays} ${t('plant.daysUnit')}` : t('plant.winterNotSet')}
                     </Text>
                   </View>
                 </View>
               </View>
 
-              <InfoRow icon="calendar-outline" label={t('plant.wateringIntervalLabel')} value={`${plant.wateringIntervalDays} ${t('plant.daysUnit')}`} colors={colors} />
-              <InfoRow icon="water-outline" label={t('plant.lastWatered')} value={formatDate(plant.lastWateredDate, language)} colors={colors} />
-              <InfoRow icon="alarm-outline" label={t('plant.nextWatering')} value={formatDate(plant.nextWateringDate, language)} colors={colors} />
-              <InfoRow icon="leaf-outline" label={t('plant.addedDate')} value={formatDate(plant.createdAt, language)} colors={colors} />
+              <InfoRow icon="calendar-outline" label={t('plant.wateringIntervalLabel')} value={`${plant.wateringIntervalDays} ${t('plant.daysUnit')}`} colors={colors} s={s} />
+              <InfoRow icon="water-outline" label={t('plant.lastWatered')} value={formatDate(plant.lastWateredDate, language)} colors={colors} s={s} />
+              <InfoRow icon="alarm-outline" label={t('plant.nextWatering')} value={formatDate(plant.nextWateringDate, language)} colors={colors} s={s} />
+              <InfoRow icon="leaf-outline" label={t('plant.addedDate')} value={formatDate(plant.createdAt, language)} colors={colors} s={s} />
             </View>
           )}
 
           {/* Вкладка: Журнал */}
           {activeTab === 'history' && (
-            <View style={styles.tabContent}>
+            <View style={s.tabContent}>
               {plant.wateringHistory.length === 0 ? (
-                <Text style={[styles.emptyText, { color: colors.textMuted }]}>{t('plant.noHistory')}</Text>
+                <Text style={s.emptyText}>{t('plant.noHistory')}</Text>
               ) : (
                 plant.wateringHistory.map((record) => (
-                  <View key={record.id} style={[styles.historyItem, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
+                  <View key={record.id} style={s.historyItem}>
                     <Ionicons
                       name={record.postponed ? 'time-outline' : 'water'}
                       size={18}
                       color={record.postponed ? colors.warning : colors.primary}
                     />
                     <View style={{ flex: 1, marginLeft: 10 }}>
-                      <Text style={[styles.historyLabel, { color: colors.text }]}>
+                      <Text style={s.historyLabel}>
                         {record.postponed
                           ? t('plant.postponed', { days: record.postponedDays ?? '' })
                           : t('plant.watered')}
                       </Text>
-                      <Text style={[styles.historyDate, { color: colors.textMuted }]}>{formatRelativeDate(record.date, language)}</Text>
+                      <Text style={s.historyDate}>{formatRelativeDate(record.date, language)}</Text>
                     </View>
                     <TouchableOpacity
                       onPress={() =>
-                        Alert.alert(
-                          t('plant.deleteRecord'),
-                          t('plant.deleteRecordMsg'),
-                          [
-                            { text: t('plant.cancel'), style: 'cancel' },
-                            {
-                              text: t('plant.delete'),
-                              style: 'destructive',
-                              onPress: () => deleteWateringRecord(plant.id, record.id),
-                            },
-                          ]
-                        )
+                         Alert.alert(
+                           t('plant.deleteRecord'),
+                           t('plant.deleteRecordMsg'),
+                           [
+                             { text: t('plant.cancel'), style: 'cancel' },
+                             {
+                               text: t('plant.delete'),
+                               style: 'destructive',
+                               onPress: () => deleteWateringRecord(plant.id, record.id),
+                             },
+                           ]
+                         )
                       }
-                      style={styles.historyDeleteBtn}
+                      style={s.historyDeleteBtn}
                     >
                       <Ionicons name="close-circle-outline" size={20} color={colors.textMuted} />
                     </TouchableOpacity>
@@ -402,10 +406,10 @@ export function PlantCard({ plantId, onClose }: Props) {
 
           {/* Вкладка: Нотатки */}
           {activeTab === 'notes' && (
-            <View style={styles.tabContent}>
-              <View style={styles.noteInputRow}>
+            <View style={s.tabContent}>
+              <View style={s.noteInputRow}>
                 <TextInput
-                  style={[styles.noteInput, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
+                  style={s.noteInput}
                   placeholder={t('plant.addNotePlaceholder')}
                   placeholderTextColor={colors.textMuted}
                   value={noteText}
@@ -413,7 +417,7 @@ export function PlantCard({ plantId, onClose }: Props) {
                   multiline
                 />
                 <TouchableOpacity
-                  style={[styles.noteAddBtn, !noteText.trim() && styles.noteAddBtnDisabled, { backgroundColor: colors.primary }]}
+                  style={[s.noteAddBtn, !noteText.trim() && s.noteAddBtnDisabled, { backgroundColor: colors.primary }]}
                   onPress={onAddNote}
                   disabled={!noteText.trim()}
                 >
@@ -422,16 +426,16 @@ export function PlantCard({ plantId, onClose }: Props) {
               </View>
 
               {plant.notes.length === 0 ? (
-                <Text style={[styles.emptyText, { color: colors.textMuted }]}>{t('plant.noNotes')}</Text>
+                <Text style={s.emptyText}>{t('plant.noNotes')}</Text>
               ) : (
                 plant.notes.map((note) => (
-                  <View key={note.id} style={styles.noteItem}>
+                  <View key={note.id} style={s.noteItem}>
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.noteText}>{note.text}</Text>
-                      <Text style={styles.noteDate}>{formatRelativeDate(note.date)}</Text>
+                      <Text style={s.noteText}>{note.text}</Text>
+                      <Text style={s.noteDate}>{formatRelativeDate(note.date)}</Text>
                     </View>
                     <TouchableOpacity onPress={() => deleteNote(plant.id, note.id)}>
-                      <Ionicons name="close-circle-outline" size={20} color="#d1c4c4" />
+                      <Ionicons name="close-circle-outline" size={20} color={colors.textMuted} />
                     </TouchableOpacity>
                   </View>
                 ))
@@ -445,448 +449,468 @@ export function PlantCard({ plantId, onClose }: Props) {
 }
 
 function InfoRow({
-  icon, label, value, colors,
+  icon, label, value, colors, s,
 }: {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
   value: string;
   colors: any;
+  s: any;
 }) {
   return (
-    <View style={[styles.infoRow, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}>
+    <View style={s.infoRow}>
       <Ionicons name={icon} size={18} color={colors.primaryLight} style={{ width: 26 }} />
-      <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>{label}</Text>
-      <Text style={[styles.infoValue, { color: colors.text }]}>{value}</Text>
+      <Text style={s.infoLabel}>{label}</Text>
+      <Text style={s.infoValue}>{value}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  sheetBackground: {
-    backgroundColor: '#faf8f3',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-  },
-  handleIndicator: {
-    backgroundColor: '#c4a882',
-    width: 40,
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    paddingVertical: 16,
-  },
-  photo: {
-    width: 72,
-    height: 72,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: '#aee5c8',
-  },
-  photoPlaceholder: {
-    width: 72,
-    height: 72,
-    borderRadius: 16,
-    backgroundColor: '#d6f2e3',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#aee5c8',
-  },
-  headerInfo: {
-    flex: 1,
-    gap: 6,
-  },
-  speciesLabel: {
-    fontSize: 12,
-    color: '#7dd1aa',
-    fontWeight: '500',
-  },
-  plantName: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#2d4a30',
-  },
-  deleteBtn: {
-    padding: 8,
-  },
-  editBtn: {
-    padding: 8,
-    backgroundColor: '#f0faf5',
-    borderRadius: 10,
-  },
-  headerActions: {
-    flexDirection: 'column',
-    gap: 6,
-    alignItems: 'center',
-  },
-  actionsRow: {
-    gap: 10,
-    marginBottom: 20,
-  },
-  waterBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#4db88a',
-    paddingVertical: 14,
-    borderRadius: 16,
-    gap: 8,
-    shadowColor: '#2d9e6f',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  waterBtnText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  postponeGroup: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  postponeBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#f5ede3',
-    paddingVertical: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e8d5bc',
-    gap: 6,
-  },
-  postponeBtnText: {
-    color: '#a07850',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  tabs: {
-    flexDirection: 'row',
-    backgroundColor: '#f0faf5',
-    borderRadius: 12,
-    padding: 4,
-    marginBottom: 16,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 8,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  tabActive: {
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  tabText: {
-    fontSize: 13,
-    color: '#6b8c6b',
-  },
-  tabTextActive: {
-    color: '#2d4a30',
-    fontWeight: '600',
-  },
-  tabContent: {
-    gap: 8,
-  },
-
-  // Season section
-  seasonSection: {
-    borderBottomWidth: 1,
-    paddingBottom: 12,
-    gap: 10,
-  },
-  seasonHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: 12,
-  },
-  seasonSectionLabel: {
-    flex: 1,
-    fontSize: 14,
-  },
-  editIntervalsBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  editIntervalsBtnText: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  seasonToggleRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  seasonChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 10,
-    backgroundColor: '#f5f5f5',
-    borderWidth: 1.5,
-    borderColor: '#ddd',
-  },
-  seasonChipSummerActive: {
-    backgroundColor: '#f59e0b',
-    borderColor: '#f59e0b',
-  },
-  seasonChipWinterActive: {
-    backgroundColor: '#60a5fa',
-    borderColor: '#60a5fa',
-  },
-  seasonChipGlobal: {
-    backgroundColor: 'transparent',
-    borderColor: '#c8e6d4',
-    borderStyle: 'dashed',
-  },
-  seasonChipText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#555',
-  },
-  seasonChipTextActive: {
-    color: '#fff',
-  },
-  seasonChipGlobalText: {
-    fontSize: 12,
-    color: '#7dd1aa',
-    fontWeight: '600',
-  },
-  intervalSummaryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  intervalSummaryItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  intervalSummaryLabel: {
-    fontSize: 14,
-  },
-  intervalSummaryValue: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  intervalSummaryActive: {
-    fontWeight: '700',
-    color: '#f59e0b',
-  },
-  intervalSummaryWinterActive: {
-    fontWeight: '700',
-    color: '#60a5fa',
-  },
-  intervalSummarySep: {
-    fontSize: 16,
-  },
-
-  // Interval modal
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  intervalModal: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 24,
-    gap: 8,
-  },
-  intervalModalTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#2d4a30',
-    marginBottom: 8,
-  },
-  intervalFieldLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#6b8c6b',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  intervalPresets: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 4,
-  },
-  intervalPreset: {
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 10,
-    backgroundColor: '#f0faf5',
-    borderWidth: 1.5,
-    borderColor: '#c8e6d4',
-  },
-  intervalPresetActive: {
-    backgroundColor: '#f59e0b',
-    borderColor: '#f59e0b',
-  },
-  intervalPresetWinterActive: {
-    backgroundColor: '#60a5fa',
-    borderColor: '#60a5fa',
-  },
-  intervalPresetText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#4db88a',
-  },
-  intervalPresetTextActive: {
-    color: '#fff',
-  },
-  intervalInput: {
-    borderWidth: 1,
-    borderColor: '#c8e6d4',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    fontSize: 15,
-    color: '#2d4a30',
-    marginTop: 4,
-  },
-  intervalHint: {
-    fontSize: 11,
-    color: '#9bada0',
-    marginTop: 2,
-  },
-  intervalModalBtns: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 8,
-  },
-  intervalCancelBtn: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    alignItems: 'center',
-  },
-  intervalCancelBtnText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#888',
-  },
-  intervalSaveBtn: {
-    flex: 2,
-    paddingVertical: 12,
-    borderRadius: 12,
-    backgroundColor: '#4db88a',
-    alignItems: 'center',
-  },
-  intervalSaveBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e8f5ee',
-  },
-  infoLabel: {
-    flex: 1,
-    fontSize: 14,
-    color: '#6b8c6b',
-  },
-  infoValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#2d4a30',
-  },
-  historyItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e8f5ee',
-  },
-  historyDeleteBtn: {
-    padding: 4,
-    marginLeft: 6,
-  },
-  historyLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#2d4a30',
-  },
-  historyDate: {
-    fontSize: 12,
-    color: '#9bada0',
-    marginTop: 2,
-  },
-  emptyText: {
-    textAlign: 'center',
-    color: '#9bada0',
-    fontSize: 14,
-    paddingVertical: 24,
-  },
-  noteInputRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 12,
-    alignItems: 'flex-end',
-  },
-  noteInput: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#c8e6d4',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: '#2d4a30',
-    maxHeight: 100,
-  },
-  noteAddBtn: {
-    backgroundColor: '#4db88a',
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  noteAddBtnDisabled: {
-    backgroundColor: '#c8e6d4',
-  },
-  noteItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: '#fff',
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e8f5ee',
-    gap: 8,
-  },
-  noteText: {
-    fontSize: 14,
-    color: '#2d4a30',
-    lineHeight: 20,
-  },
-  noteDate: {
-    fontSize: 11,
-    color: '#9bada0',
-    marginTop: 4,
-  },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    sheetBackground: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: 32,
+      borderTopRightRadius: 32,
+    },
+    handleIndicator: {
+      backgroundColor: colors.border,
+      width: 44,
+      height: 4,
+    },
+    scrollContent: {
+      paddingHorizontal: 20,
+      paddingBottom: 40,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 16,
+      paddingVertical: 20,
+    },
+    photo: {
+      width: 80,
+      height: 80,
+      borderRadius: 20,
+      borderWidth: 2,
+      borderColor: colors.border,
+    },
+    photoPlaceholder: {
+      width: 80,
+      height: 80,
+      borderRadius: 20,
+      backgroundColor: colors.surfaceSecondary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 2,
+      borderColor: colors.border,
+    },
+    headerInfo: {
+      flex: 1,
+      gap: 6,
+    },
+    speciesLabel: {
+      fontSize: 12,
+      color: colors.primaryLight,
+      fontWeight: '700',
+    },
+    plantName: {
+      fontSize: 22,
+      fontWeight: '800',
+      color: colors.text,
+      letterSpacing: -0.4,
+    },
+    deleteBtn: {
+      padding: 8,
+    },
+    editBtn: {
+      padding: 8,
+      backgroundColor: colors.surfaceSecondary,
+      borderRadius: 12,
+    },
+    headerActions: {
+      flexDirection: 'column',
+      gap: 8,
+      alignItems: 'center',
+    },
+    actionsRow: {
+      gap: 12,
+      marginBottom: 24,
+    },
+    waterBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 14,
+      borderRadius: 18,
+      gap: 8,
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.15,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    waterBtnText: {
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: '800',
+    },
+    postponeGroup: {
+      flexDirection: 'row',
+      gap: 12,
+    },
+    postponeBtn: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.surfaceSecondary,
+      paddingVertical: 12,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: colors.border,
+      gap: 6,
+    },
+    postponeBtnText: {
+      color: colors.textSecondary,
+      fontSize: 13,
+      fontWeight: '700',
+    },
+    tabs: {
+      flexDirection: 'row',
+      backgroundColor: colors.surfaceSecondary,
+      borderRadius: 16,
+      padding: 4,
+      marginBottom: 20,
+      borderWidth: 1,
+      borderColor: colors.borderLight,
+    },
+    tab: {
+      flex: 1,
+      paddingVertical: 10,
+      borderRadius: 12,
+      alignItems: 'center',
+    },
+    tabActive: {
+      backgroundColor: colors.surface,
+      shadowColor: colors.text,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.04,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    tabText: {
+      fontSize: 13,
+      color: colors.textMuted,
+      fontWeight: '600',
+    },
+    tabTextActive: {
+      color: colors.text,
+      fontWeight: '800',
+    },
+    tabContent: {
+      gap: 10,
+    },
+    seasonSection: {
+      borderBottomWidth: 1,
+      borderBottomColor: colors.borderLight,
+      paddingBottom: 16,
+      gap: 12,
+    },
+    seasonHeaderRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingTop: 14,
+    },
+    seasonSectionLabel: {
+      flex: 1,
+      fontSize: 14,
+      fontWeight: '700',
+    },
+    editIntervalsBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    editIntervalsBtnText: {
+      fontSize: 13,
+      fontWeight: '700',
+    },
+    seasonToggleRow: {
+      flexDirection: 'row',
+      gap: 10,
+    },
+    seasonChip: {
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: 12,
+      backgroundColor: colors.chipBg,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    seasonChipSummerActive: {
+      backgroundColor: colors.warning,
+      borderColor: colors.warning,
+    },
+    seasonChipWinterActive: {
+      backgroundColor: '#3b82f6',
+      borderColor: '#3b82f6',
+    },
+    seasonChipGlobal: {
+      backgroundColor: 'transparent',
+      borderColor: colors.primaryLight,
+      borderStyle: 'dashed',
+    },
+    seasonChipText: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: colors.textSecondary,
+    },
+    seasonChipTextActive: {
+      color: '#fff',
+    },
+    seasonChipGlobalText: {
+      fontSize: 12,
+      color: colors.primaryLight,
+      fontWeight: '700',
+    },
+    intervalSummaryRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      backgroundColor: colors.surfaceSecondary,
+      padding: 12,
+      borderRadius: 14,
+    },
+    intervalSummaryItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    intervalSummaryLabel: {
+      fontSize: 14,
+    },
+    intervalSummaryValue: {
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    intervalSummaryActive: {
+      fontWeight: '800',
+      color: colors.warning,
+    },
+    intervalSummaryWinterActive: {
+      fontWeight: '800',
+      color: '#3b82f6',
+    },
+    intervalSummarySep: {
+      fontSize: 16,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: colors.modalOverlay,
+      justifyContent: 'center',
+      padding: 24,
+    },
+    intervalModal: {
+      backgroundColor: colors.surface,
+      borderRadius: 24,
+      padding: 24,
+      gap: 12,
+      borderWidth: 1,
+      borderColor: colors.borderLight,
+      shadowColor: colors.text,
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.1,
+      shadowRadius: 20,
+      elevation: 10,
+    },
+    intervalModalTitle: {
+      fontSize: 18,
+      fontWeight: '800',
+      color: colors.text,
+      marginBottom: 8,
+      letterSpacing: -0.3,
+    },
+    intervalFieldLabel: {
+      fontSize: 11,
+      fontWeight: '800',
+      color: colors.textSecondary,
+      textTransform: 'uppercase',
+      letterSpacing: 0.8,
+    },
+    intervalPresets: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+      marginTop: 4,
+    },
+    intervalPreset: {
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 12,
+      backgroundColor: colors.chipBg,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    intervalPresetActive: {
+      backgroundColor: colors.warning,
+      borderColor: colors.warning,
+    },
+    intervalPresetWinterActive: {
+      backgroundColor: '#3b82f6',
+      borderColor: '#3b82f6',
+    },
+    intervalPresetText: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: colors.textSecondary,
+    },
+    intervalPresetTextActive: {
+      color: '#fff',
+    },
+    intervalInput: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 12,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      fontSize: 15,
+      color: colors.text,
+      marginTop: 4,
+      backgroundColor: colors.inputBg,
+    },
+    intervalHint: {
+      fontSize: 11,
+      color: colors.textMuted,
+      marginTop: 2,
+    },
+    intervalModalBtns: {
+      flexDirection: 'row',
+      gap: 10,
+      marginTop: 12,
+    },
+    intervalCancelBtn: {
+      flex: 1,
+      paddingVertical: 14,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: colors.border,
+      alignItems: 'center',
+    },
+    intervalCancelBtnText: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.textSecondary,
+    },
+    intervalSaveBtn: {
+      flex: 2,
+      paddingVertical: 14,
+      borderRadius: 14,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+    },
+    intervalSaveBtnText: {
+      fontSize: 15,
+      fontWeight: '800',
+      color: '#fff',
+    },
+    infoRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 14,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.borderLight,
+    },
+    infoLabel: {
+      flex: 1,
+      fontSize: 14,
+      color: colors.textSecondary,
+      fontWeight: '600',
+    },
+    infoValue: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    historyItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surfaceSecondary,
+      padding: 14,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: colors.borderLight,
+    },
+    historyDeleteBtn: {
+      padding: 4,
+      marginLeft: 8,
+    },
+    historyLabel: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    historyDate: {
+      fontSize: 12,
+      color: colors.textMuted,
+      marginTop: 2,
+    },
+    emptyText: {
+      textAlign: 'center',
+      color: colors.textMuted,
+      fontSize: 14,
+      paddingVertical: 24,
+      fontWeight: '600',
+    },
+    noteInputRow: {
+      flexDirection: 'row',
+      gap: 10,
+      marginBottom: 16,
+      alignItems: 'flex-end',
+    },
+    noteInput: {
+      flex: 1,
+      backgroundColor: colors.inputBg,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      fontSize: 14,
+      color: colors.text,
+      maxHeight: 100,
+    },
+    noteAddBtn: {
+      width: 48,
+      height: 48,
+      borderRadius: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    noteAddBtnDisabled: {
+      opacity: 0.5,
+    },
+    noteItem: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      backgroundColor: colors.surfaceSecondary,
+      padding: 14,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: colors.borderLight,
+      gap: 10,
+    },
+    noteText: {
+      fontSize: 14,
+      color: colors.text,
+      lineHeight: 20,
+      fontWeight: '500',
+    },
+    noteDate: {
+      fontSize: 11,
+      color: colors.textMuted,
+      marginTop: 4,
+      fontWeight: '600',
+    },
+  });
+}

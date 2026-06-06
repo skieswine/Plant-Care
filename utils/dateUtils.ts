@@ -17,20 +17,27 @@ export const wateringStatusLabel = (nextWateringDateISO: string, lang: Language 
   const days = daysUntilWatering(nextWateringDateISO);
   const next = parseISO(nextWateringDateISO);
 
-  // These labels are used in CountdownBadge — kept simple (not translated via hook to avoid complexity)
-  if (isToday(next)) return '💧 Today!';
-  if (days < 0) return `⚠️ ${Math.abs(days)}d late`;
-  if (isTomorrow(next)) return '🔔 Tomorrow';
-  if (days <= 3) return `⏰ ${days}d`;
-  return `📅 ${days}d`;
+  const loc: Record<Language, { today: string; tomorrow: string; overdue: string; days: string }> = {
+    uk: { today: '💧 Сьогодні', tomorrow: '🔔 Завтра', overdue: '⚠️ Запізнення {{n}} дн.', days: '⏰ Через {{n}} дн.' },
+    en: { today: '💧 Today', tomorrow: '🔔 Tomorrow', overdue: '⚠️ {{n}}d late', days: '⏰ In {{n}}d' },
+    de: { today: '💧 Heute', tomorrow: '🔔 Morgen', overdue: '⚠️ {{n}}T. überfällig', days: '⏰ In {{n}}T.' },
+    ru: { today: '💧 Сегодня', tomorrow: '🔔 Завтра', overdue: '⚠️ Опоздание {{n}} дн.', days: '⏰ Через {{n}} дн.' },
+  };
+
+  const l = loc[lang] || loc['uk'];
+
+  if (isToday(next)) return l.today;
+  if (days < 0) return l.overdue.replace('{{n}}', String(Math.abs(days)));
+  if (isTomorrow(next)) return l.tomorrow;
+  return l.days.replace('{{n}}', String(days));
 };
 
 export const wateringStatusColor = (nextWateringDateISO: string): string => {
   const days = daysUntilWatering(nextWateringDateISO);
-  if (days < 0) return '#ef4444';
-  if (days === 0) return '#f97316';
-  if (days <= 2) return '#eab308';
-  return '#4db88a';
+  if (days < 0) return '#E63946'; // Crimson red (Overdue)
+  if (days === 0) return '#FF9F1C'; // Vibrant orange (Today)
+  if (days <= 2) return '#FFB703'; // Soft amber yellow (Upcoming)
+  return '#10B981'; // Emerald mint green (Safe)
 };
 
 export const formatDate = (isoString: string, lang: Language = 'uk'): string => {

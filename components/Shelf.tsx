@@ -3,6 +3,7 @@ import React from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { Plant } from '../store/types';
 import { PlantPot } from './PlantPot';
+import { useTheme } from '../hooks/useTheme';
 
 interface Props {
   plants: Plant[];
@@ -20,6 +21,8 @@ function chunkArray<T>(arr: T[], size: number): T[][] {
 
 export function Shelf({ plants, onPlantPress }: Props) {
   const shelves = chunkArray(plants, 3);
+  const { colors } = useTheme();
+  const s = makeStyles(colors);
 
   return (
     <ScrollView
@@ -27,11 +30,11 @@ export function Shelf({ plants, onPlantPress }: Props) {
       contentContainerStyle={styles.scrollContent}
     >
       {shelves.map((shelfPlants, shelfIndex) => (
-        <View key={shelfIndex} style={styles.shelfWrapper}>
+        <View key={shelfIndex} style={s.shelfWrapper}>
           {/* Полиця (дерев'яна дошка) */}
-          <View style={styles.shelfBoard}>
+          <View style={s.shelfBoard}>
             {/* Рослини на полиці */}
-            <View style={styles.plantsRow}>
+            <View style={s.plantsRow}>
               {shelfPlants.map((plant) => (
                 <PlantPot
                   key={plant.id}
@@ -41,14 +44,14 @@ export function Shelf({ plants, onPlantPress }: Props) {
               ))}
               {/* Порожні місця для вирівнювання */}
               {Array.from({ length: 3 - shelfPlants.length }).map((_, i) => (
-                <View key={`empty-${i}`} style={styles.emptySlot} />
+                <View key={`empty-${i}`} style={s.emptySlot} />
               ))}
             </View>
           </View>
           {/* Підпірки полиці */}
-          <View style={styles.shelfSupports}>
-            <View style={styles.support} />
-            <View style={styles.support} />
+          <View style={s.shelfSupports}>
+            <View style={s.support} />
+            <View style={s.support} />
           </View>
         </View>
       ))}
@@ -59,46 +62,53 @@ export function Shelf({ plants, onPlantPress }: Props) {
 const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 32,
-    gap: 24,
-  },
-  shelfWrapper: {
-    alignItems: 'center',
-  },
-  plantsRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-around',
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    paddingTop: 16,
-    minHeight: 130,
-  },
-  shelfBoard: {
-    width: '100%',
-    backgroundColor: '#d4a96a',
-    borderRadius: 8,
-    shadowColor: '#7a5530',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 6,
-    borderBottomWidth: 4,
-    borderBottomColor: '#a07850',
-  },
-  shelfSupports: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '85%',
-    marginTop: -2,
-  },
-  support: {
-    width: 16,
-    height: 20,
-    backgroundColor: '#a07850',
-    borderBottomLeftRadius: 4,
-    borderBottomRightRadius: 4,
-  },
-  emptySlot: {
-    width: 90,
+    gap: 28,
   },
 });
+
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    shelfWrapper: {
+      alignItems: 'center',
+      marginTop: 8,
+    },
+    plantsRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      justifyContent: 'space-around',
+      paddingHorizontal: 16,
+      paddingBottom: 8,
+      paddingTop: 16,
+      minHeight: 120,
+    },
+    shelfBoard: {
+      width: '100%',
+      backgroundColor: colors.shelf,
+      borderRadius: 12,
+      shadowColor: colors.shelfBorder,
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.25,
+      shadowRadius: 8,
+      elevation: 6,
+      borderBottomWidth: 5,
+      borderBottomColor: colors.shelfBorder,
+    },
+    shelfSupports: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      width: '85%',
+      marginTop: -2,
+      paddingHorizontal: 10,
+    },
+    support: {
+      width: 14,
+      height: 18,
+      backgroundColor: colors.shelfSupport,
+      borderBottomLeftRadius: 6,
+      borderBottomRightRadius: 6,
+    },
+    emptySlot: {
+      width: 90,
+    },
+  });
+}
