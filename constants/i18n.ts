@@ -30,6 +30,10 @@ const uk = {
     seasonSummer: 'Літо',
     seasonWinter: 'Зима',
     seasonToggleHint: 'Переключити сезон для всіх рослин',
+    needWatering: '💧 Потребують поливу',
+    filterResults: '🔍 Результати фільтра',
+    watered: 'Полито!',
+    roomLabel: 'Кімната',
   },
   plant: {
     newTitle: 'Нова рослина 🌱',
@@ -200,6 +204,10 @@ const en: Translations = {
     seasonSummer: 'Summer',
     seasonWinter: 'Winter',
     seasonToggleHint: 'Switch season for all plants',
+    needWatering: '💧 Need watering',
+    filterResults: '🔍 Filter results',
+    watered: 'Watered!',
+    roomLabel: 'Room',
   },
   plant: {
     newTitle: 'New Plant 🌱',
@@ -370,6 +378,10 @@ const de: Translations = {
     seasonSummer: 'Sommer',
     seasonWinter: 'Winter',
     seasonToggleHint: 'Saison für alle Pflanzen wechseln',
+    needWatering: '💧 Brauchen Wasser',
+    filterResults: '🔍 Filterergebnisse',
+    watered: 'Gegossen!',
+    roomLabel: 'Zimmer',
   },
   plant: {
     newTitle: 'Neue Pflanze 🌱',
@@ -540,6 +552,10 @@ const ru: Translations = {
     seasonSummer: 'Лето',
     seasonWinter: 'Зима',
     seasonToggleHint: 'Переключить сезон для всех растений',
+    needWatering: '💧 Нуждаются в поливе',
+    filterResults: '🔍 Результаты фильтра',
+    watered: 'Полито!',
+    roomLabel: 'Комната',
   },
   plant: {
     newTitle: 'Новое растение 🌱',

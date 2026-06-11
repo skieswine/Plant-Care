@@ -18,6 +18,7 @@ import { Plant, Room } from '../../store/types';
 import { getPlantDisplayName } from '../../store/useAppStore';
 import { PlantCard } from '../../components/PlantCard';
 import { useNotifications } from '../../hooks/useNotifications';
+import { useWatering } from '../../hooks/useWatering';
 import { useTheme } from '../../hooks/useTheme';
 import { useT } from '../../hooks/useT';
 
@@ -52,6 +53,7 @@ export default function HomeScreen() {
   const [speciesFilter, setSpeciesFilter] = useState<string | null>(null);
 
   useNotifications();
+  const { handleWater } = useWatering();
 
   const urgentPlants = useMemo(() => {
     const today = new Date();
@@ -77,8 +79,21 @@ export default function HomeScreen() {
     }).filter(({ plants }) => plants.length > 0);
   }, [rooms, plants, freqFilter, speciesFilter]);
 
+  // Плоский список усіх відфільтрованих рослин (без групування по кімнатах)
+  const filteredPlantsFlat = useMemo(() => {
+    return plants.filter((p) => {
+      const freqMatch = matchesFrequency(p, freqFilter);
+      const speciesMatch = speciesFilter ? p.species === speciesFilter : true;
+      return freqMatch && speciesMatch;
+    });
+  }, [plants, freqFilter, speciesFilter]);
+
   const handlePlantPress = useCallback((plant: Plant) => setSelectedPlantId(plant.id), []);
   const handleCloseCard = useCallback(() => setSelectedPlantId(null), []);
+
+  const handleQuickWater = useCallback((plantId: string) => {
+    handleWater(plantId);
+  }, [handleWater]);
 
   const handleDeleteRoom = useCallback((room: Room) => {
     const roomPlants = plants.filter((p) => p.roomId === room.id);
@@ -191,8 +206,8 @@ export default function HomeScreen() {
       </View>
 
       <ScrollView style={s.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={s.scrollContent}>
-        {/* Порожній результат */}
-        {isFiltered && filteredPlantsByRoom.length === 0 && (
+        {/* Порожній результат фільтра */}
+        {isFiltered && filteredPlantsFlat.length === 0 && (
           <Animated.View entering={FadeIn} style={s.emptyFilter}>
             <Text style={{ fontSize: 48 }}>🔍</Text>
             <Text style={s.emptyFilterTitle}>{t('home.noResults')}</Text>
@@ -200,8 +215,50 @@ export default function HomeScreen() {
           </Animated.View>
         )}
 
-        {/* Кімнати з рослинами */}
-        {filteredPlantsByRoom.map(({ room, plants: roomPlants }, index) => {
+        {/* Окремий блок відфільтрованих рослин (без групування по кімнатах) */}
+        {isFiltered && filteredPlantsFlat.length > 0 && (
+          <Animated.View entering={FadeIn} style={s.filteredBlock}>
+            <View style={s.filteredHeader}>
+              <Text style={s.filteredTitle}>
+                {freqFilter === 'urgent' ? t('home.needWatering') : t('home.filterResults')}
+              </Text>
+              <View style={s.filteredCountBadge}>
+                <Text style={s.filteredCountText}>{filteredPlantsFlat.length}</Text>
+              </View>
+            </View>
+            <View style={s.filteredGrid}>
+              {filteredPlantsFlat.map((plant) => {
+                const room = rooms.find((r) => r.id === plant.roomId);
+                return (
+                  <Animated.View key={plant.id} entering={FadeIn} style={s.filteredPlant}>
+                    <TouchableOpacity onPress={() => handlePlantPress(plant)} activeOpacity={0.85} style={s.filteredPlantInner}>
+                      {plant.photoUri ? (
+                        <Image source={{ uri: plant.photoUri }} style={s.filteredPlantPhoto} />
+                      ) : (
+                        <View style={s.filteredPlantEmoji}><Text style={{ fontSize: 32 }}>🪴</Text></View>
+                      )}
+                      <Text style={s.plantPreviewName} numberOfLines={1}>{getPlantDisplayName(plant)}</Text>
+                      {room && (
+                        <Text style={s.filteredPlantRoom} numberOfLines={1}>{room.emoji} {room.name}</Text>
+                      )}
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={s.quickWaterBtn}
+                      onPress={() => handleQuickWater(plant.id)}
+                      activeOpacity={0.8}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      <Ionicons name="water" size={16} color="#fff" />
+                    </TouchableOpacity>
+                  </Animated.View>
+                );
+              })}
+            </View>
+          </Animated.View>
+        )}
+
+        {/* Кімнати з рослинами (тільки без активного фільтра) */}
+        {!isFiltered && filteredPlantsByRoom.map(({ room, plants: roomPlants }, index) => {
           const renderRightActions = () => (
             <TouchableOpacity
               style={s.swipeDeleteBtn}
@@ -233,7 +290,6 @@ export default function HomeScreen() {
                 <Text style={s.roomName}>{room.name}</Text>
                 <Text style={s.roomCount}>
                   {roomPlants.length} {roomPlants.length === 1 ? t('home.plant') : t('home.plants')}
-                  {isFiltered && ` ${t('home.from')} ${plants.filter(p => p.roomId === room.id).length}`}
                 </Text>
                 <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
               </Pressable>
@@ -427,6 +483,52 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     plantPreviewSpecies: {
       fontSize: 9, color: colors.textMuted, fontWeight: '500', textAlign: 'center', width: '100%',
     },
+
+    // Окремий блок відфільтрованих рослин
+    filteredBlock: {
+      backgroundColor: colors.surface, borderRadius: 24, overflow: 'hidden',
+      shadowColor: colors.text, shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.03, shadowRadius: 12, elevation: 4,
+      borderWidth: 1, borderColor: colors.borderLight,
+      marginBottom: 8,
+    },
+    filteredHeader: {
+      flexDirection: 'row', alignItems: 'center', gap: 10,
+      paddingHorizontal: 18, paddingVertical: 14,
+      borderBottomWidth: 1, borderBottomColor: colors.borderLight,
+    },
+    filteredTitle: { flex: 1, fontSize: 17, fontWeight: '800', color: colors.text, letterSpacing: -0.3 },
+    filteredCountBadge: {
+      minWidth: 26, height: 26, borderRadius: 13, paddingHorizontal: 8,
+      backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center',
+    },
+    filteredCountText: { color: '#fff', fontSize: 13, fontWeight: '800' },
+    filteredGrid: {
+      flexDirection: 'row', flexWrap: 'wrap',
+      paddingHorizontal: 14, paddingVertical: 16, gap: 8,
+    },
+    filteredPlant: { width: 82, alignItems: 'center', position: 'relative' },
+    filteredPlantInner: { alignItems: 'center', gap: 4, width: '100%' },
+    filteredPlantPhoto: {
+      width: 60, height: 60, borderRadius: 18,
+      borderWidth: 2, borderColor: colors.border,
+    },
+    filteredPlantEmoji: {
+      width: 60, height: 60, borderRadius: 18,
+      alignItems: 'center', justifyContent: 'center',
+      backgroundColor: colors.surfaceSecondary,
+      borderWidth: 2, borderColor: colors.border,
+    },
+    filteredPlantRoom: { fontSize: 9, color: colors.textMuted, fontWeight: '600', textAlign: 'center', width: '100%' },
+    quickWaterBtn: {
+      position: 'absolute', top: -4, right: 6,
+      width: 28, height: 28, borderRadius: 14,
+      backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center',
+      borderWidth: 2, borderColor: colors.surface,
+      shadowColor: colors.primary, shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3, shadowRadius: 4, elevation: 4,
+    },
+
     emptyRoom: { alignItems: 'center', paddingVertical: 28, gap: 8 },
     emptyRoomText: { color: colors.textMuted, fontSize: 13, fontWeight: '600' },
     addRoomBtn: {
