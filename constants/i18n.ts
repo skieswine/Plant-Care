@@ -37,6 +37,8 @@ const uk = {
     waterHint: 'Натисни 💧 щоб полити — рослина зникне зі списку',
     waterAll: 'Полити всі ({{count}})',
     waterAllConfirm: 'Полити всі рослини у списку ({{count}})?',
+    allWatered: 'Усе полито! 🎉',
+    allWateredSub: 'Жодна рослина зараз не потребує поливу',
   },
   plant: {
     newTitle: 'Нова рослина 🌱',
@@ -215,6 +217,8 @@ const en: Translations = {
     waterHint: "Tap 💧 to water — it'll disappear from the list",
     waterAll: 'Water all ({{count}})',
     waterAllConfirm: 'Water all plants in the list ({{count}})?',
+    allWatered: 'All watered! 🎉',
+    allWateredSub: 'No plants need watering right now',
   },
   plant: {
     newTitle: 'New Plant 🌱',
@@ -393,6 +397,8 @@ const de: Translations = {
     waterHint: 'Tippe 💧 zum Gießen — die Pflanze verschwindet aus der Liste',
     waterAll: 'Alle gießen ({{count}})',
     waterAllConfirm: 'Alle Pflanzen in der Liste gießen ({{count}})?',
+    allWatered: 'Alles gegossen! 🎉',
+    allWateredSub: 'Keine Pflanze braucht gerade Wasser',
   },
   plant: {
     newTitle: 'Neue Pflanze 🌱',
@@ -571,6 +577,8 @@ const ru: Translations = {
     waterHint: 'Нажми 💧 чтобы полить — растение исчезнет из списка',
     waterAll: 'Полить все ({{count}})',
     waterAllConfirm: 'Полить все растения в списке ({{count}})?',
+    allWatered: 'Всё полито! 🎉',
+    allWateredSub: 'Ни одно растение сейчас не нуждается в поливе',
   },
   plant: {
     newTitle: 'Новое растение 🌱',

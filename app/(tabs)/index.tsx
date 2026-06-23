@@ -225,9 +225,13 @@ export default function HomeScreen() {
         {/* Порожній результат фільтра */}
         {isFiltered && filteredPlantsFlat.length === 0 && (
           <Animated.View entering={FadeIn} style={s.emptyFilter}>
-            <Text style={{ fontSize: 48 }}>🔍</Text>
-            <Text style={s.emptyFilterTitle}>{t('home.noResults')}</Text>
-            <Text style={s.emptyFilterSub}>{t('home.noResultsSub')}</Text>
+            <Text style={{ fontSize: 48 }}>{freqFilter === 'urgent' ? '🎉' : '🔍'}</Text>
+            <Text style={s.emptyFilterTitle}>
+              {freqFilter === 'urgent' ? t('home.allWatered') : t('home.noResults')}
+            </Text>
+            <Text style={s.emptyFilterSub}>
+              {freqFilter === 'urgent' ? t('home.allWateredSub') : t('home.noResultsSub')}
+            </Text>
           </Animated.View>
         )}
 
@@ -243,7 +247,9 @@ export default function HomeScreen() {
                   <Text style={s.filteredCountText}>{filteredPlantsFlat.length}</Text>
                 </View>
               </View>
-              <Text style={s.filteredHint}>{t('home.waterHint')}</Text>
+              {freqFilter === 'urgent' && (
+                <Text style={s.filteredHint}>{t('home.waterHint')}</Text>
+              )}
             </View>
             <View style={s.filteredGrid}>
               {filteredPlantsFlat.map((plant) => {
@@ -264,26 +270,30 @@ export default function HomeScreen() {
                       )}
                       <CountdownBadge nextWateringDate={plant.nextWateringDate} />
                     </TouchableOpacity>
-                    <TouchableOpacity
-                      style={s.quickWaterBtn}
-                      onPress={() => handleQuickWater(plant.id)}
-                      activeOpacity={0.8}
-                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                    >
-                      <Ionicons name="water" size={16} color="#fff" />
-                    </TouchableOpacity>
+                    {freqFilter === 'urgent' && (
+                      <TouchableOpacity
+                        style={s.quickWaterBtn}
+                        onPress={() => handleQuickWater(plant.id)}
+                        activeOpacity={0.8}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      >
+                        <Ionicons name="water" size={16} color="#fff" />
+                      </TouchableOpacity>
+                    )}
                   </Animated.View>
                 );
               })}
             </View>
-            <TouchableOpacity
-              style={s.waterAllBtn}
-              onPress={() => handleWaterAll(filteredPlantsFlat)}
-              activeOpacity={0.85}
-            >
-              <Ionicons name="water" size={18} color="#fff" />
-              <Text style={s.waterAllBtnText}>{t('home.waterAll', { count: filteredPlantsFlat.length })}</Text>
-            </TouchableOpacity>
+            {freqFilter === 'urgent' && (
+              <TouchableOpacity
+                style={s.waterAllBtn}
+                onPress={() => handleWaterAll(filteredPlantsFlat)}
+                activeOpacity={0.85}
+              >
+                <Ionicons name="water" size={18} color="#fff" />
+                <Text style={s.waterAllBtnText}>{t('home.waterAll', { count: filteredPlantsFlat.length })}</Text>
+              </TouchableOpacity>
+            )}
           </Animated.View>
         )}
 
