@@ -34,6 +34,9 @@ const uk = {
     filterResults: '🔍 Результати фільтра',
     watered: 'Полито!',
     roomLabel: 'Кімната',
+    waterHint: 'Натисни 💧 щоб полити — рослина зникне зі списку',
+    waterAll: 'Полити всі ({{count}})',
+    waterAllConfirm: 'Полити всі рослини у списку ({{count}})?',
   },
   plant: {
     newTitle: 'Нова рослина 🌱',
@@ -208,6 +211,9 @@ const en: Translations = {
     filterResults: '🔍 Filter results',
     watered: 'Watered!',
     roomLabel: 'Room',
+    waterHint: "Tap 💧 to water — it'll disappear from the list",
+    waterAll: 'Water all ({{count}})',
+    waterAllConfirm: 'Water all plants in the list ({{count}})?',
   },
   plant: {
     newTitle: 'New Plant 🌱',
@@ -382,6 +388,9 @@ const de: Translations = {
     filterResults: '🔍 Filterergebnisse',
     watered: 'Gegossen!',
     roomLabel: 'Zimmer',
+    waterHint: 'Tippe 💧 zum Gießen — die Pflanze verschwindet aus der Liste',
+    waterAll: 'Alle gießen ({{count}})',
+    waterAllConfirm: 'Alle Pflanzen in der Liste gießen ({{count}})?',
   },
   plant: {
     newTitle: 'Neue Pflanze 🌱',
@@ -556,6 +565,9 @@ const ru: Translations = {
     filterResults: '🔍 Результаты фильтра',
     watered: 'Полито!',
     roomLabel: 'Комната',
+    waterHint: 'Нажми 💧 чтобы полить — растение исчезнет из списка',
+    waterAll: 'Полить все ({{count}})',
+    waterAllConfirm: 'Полить все растения в списке ({{count}})?',
   },
   plant: {
     newTitle: 'Новое растение 🌱',

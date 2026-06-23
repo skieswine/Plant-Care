@@ -17,6 +17,7 @@ import { useAppStore } from '../../store/useAppStore';
 import { Plant, Room } from '../../store/types';
 import { getPlantDisplayName } from '../../store/useAppStore';
 import { PlantCard } from '../../components/PlantCard';
+import { CountdownBadge } from '../../components/CountdownBadge';
 import { useNotifications } from '../../hooks/useNotifications';
 import { useWatering } from '../../hooks/useWatering';
 import { useTheme } from '../../hooks/useTheme';
@@ -94,6 +95,21 @@ export default function HomeScreen() {
   const handleQuickWater = useCallback((plantId: string) => {
     handleWater(plantId);
   }, [handleWater]);
+
+  const handleWaterAll = useCallback((plantsToWater: Plant[]) => {
+    if (plantsToWater.length === 0) return;
+    Alert.alert(
+      '',
+      t('home.waterAllConfirm', { count: plantsToWater.length }),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('home.filterUrgent'),
+          onPress: () => plantsToWater.forEach((p) => handleWater(p.id)),
+        },
+      ]
+    );
+  }, [t, handleWater]);
 
   const handleDeleteRoom = useCallback((room: Room) => {
     const roomPlants = plants.filter((p) => p.roomId === room.id);
@@ -219,12 +235,15 @@ export default function HomeScreen() {
         {isFiltered && filteredPlantsFlat.length > 0 && (
           <Animated.View entering={FadeIn} style={s.filteredBlock}>
             <View style={s.filteredHeader}>
-              <Text style={s.filteredTitle}>
-                {freqFilter === 'urgent' ? t('home.needWatering') : t('home.filterResults')}
-              </Text>
-              <View style={s.filteredCountBadge}>
-                <Text style={s.filteredCountText}>{filteredPlantsFlat.length}</Text>
+              <View style={s.filteredTitleRow}>
+                <Text style={s.filteredTitle}>
+                  {freqFilter === 'urgent' ? t('home.needWatering') : t('home.filterResults')}
+                </Text>
+                <View style={s.filteredCountBadge}>
+                  <Text style={s.filteredCountText}>{filteredPlantsFlat.length}</Text>
+                </View>
               </View>
+              <Text style={s.filteredHint}>{t('home.waterHint')}</Text>
             </View>
             <View style={s.filteredGrid}>
               {filteredPlantsFlat.map((plant) => {
@@ -239,8 +258,11 @@ export default function HomeScreen() {
                       )}
                       <Text style={s.plantPreviewName} numberOfLines={1}>{getPlantDisplayName(plant)}</Text>
                       {room && (
-                        <Text style={s.filteredPlantRoom} numberOfLines={1}>{room.emoji} {room.name}</Text>
+                        <View style={s.filteredPlantRoomChip}>
+                          <Text style={s.filteredPlantRoom} numberOfLines={1}>{room.emoji} {room.name}</Text>
+                        </View>
                       )}
+                      <CountdownBadge nextWateringDate={plant.nextWateringDate} />
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={s.quickWaterBtn}
@@ -254,6 +276,14 @@ export default function HomeScreen() {
                 );
               })}
             </View>
+            <TouchableOpacity
+              style={s.waterAllBtn}
+              onPress={() => handleWaterAll(filteredPlantsFlat)}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="water" size={18} color="#fff" />
+              <Text style={s.waterAllBtnText}>{t('home.waterAll', { count: filteredPlantsFlat.length })}</Text>
+            </TouchableOpacity>
           </Animated.View>
         )}
 
@@ -493,10 +523,11 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       marginBottom: 8,
     },
     filteredHeader: {
-      flexDirection: 'row', alignItems: 'center', gap: 10,
-      paddingHorizontal: 18, paddingVertical: 14,
+      paddingHorizontal: 18, paddingVertical: 14, gap: 4,
       borderBottomWidth: 1, borderBottomColor: colors.borderLight,
     },
+    filteredTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+    filteredHint: { fontSize: 12, color: colors.textMuted, fontWeight: '500' },
     filteredTitle: { flex: 1, fontSize: 17, fontWeight: '800', color: colors.text, letterSpacing: -0.3 },
     filteredCountBadge: {
       minWidth: 26, height: 26, borderRadius: 13, paddingHorizontal: 8,
@@ -507,8 +538,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       flexDirection: 'row', flexWrap: 'wrap',
       paddingHorizontal: 14, paddingVertical: 16, gap: 8,
     },
-    filteredPlant: { width: 82, alignItems: 'center', position: 'relative' },
-    filteredPlantInner: { alignItems: 'center', gap: 4, width: '100%' },
+    filteredPlant: { width: 92, alignItems: 'center', position: 'relative' },
+    filteredPlantInner: { alignItems: 'center', gap: 5, width: '100%' },
     filteredPlantPhoto: {
       width: 60, height: 60, borderRadius: 18,
       borderWidth: 2, borderColor: colors.border,
@@ -519,7 +550,19 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.surfaceSecondary,
       borderWidth: 2, borderColor: colors.border,
     },
-    filteredPlantRoom: { fontSize: 9, color: colors.textMuted, fontWeight: '600', textAlign: 'center', width: '100%' },
+    filteredPlantRoomChip: {
+      backgroundColor: colors.surfaceSecondary,
+      borderRadius: 8, paddingHorizontal: 6, paddingVertical: 2, maxWidth: '100%',
+    },
+    filteredPlantRoom: { fontSize: 9, color: colors.textSecondary, fontWeight: '700', textAlign: 'center' },
+    waterAllBtn: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+      backgroundColor: colors.primary, marginHorizontal: 14, marginBottom: 16, marginTop: 2,
+      paddingVertical: 14, borderRadius: 16,
+      shadowColor: colors.primary, shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.2, shadowRadius: 6, elevation: 3,
+    },
+    waterAllBtnText: { color: '#fff', fontSize: 15, fontWeight: '800', letterSpacing: -0.2 },
     quickWaterBtn: {
       position: 'absolute', top: -4, right: 6,
       width: 28, height: 28, borderRadius: 14,
