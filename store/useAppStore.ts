@@ -11,7 +11,7 @@ import { Language } from './types';
 interface AppState {
   plants: Plant[];
   rooms: Room[];
-  theme: 'light' | 'dark';
+  theme: 'light' | 'dark' | 'nature';
   language: Language;
   season: Season;
 
@@ -45,7 +45,7 @@ interface AppState {
   deleteRoom: (id: string) => void;
 
   // Settings
-  setTheme: (theme: 'light' | 'dark') => void;
+  setTheme: (theme: 'light' | 'dark' | 'nature') => void;
   setLanguage: (lang: Language) => void;
 
   // Backup

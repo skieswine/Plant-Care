@@ -51,28 +51,58 @@ export const lightTheme: ThemeColors = {
   modalOverlay: 'rgba(13,31,26,0.3)', // Soft dimming shadow
 };
 
+// Cool neutral "night" dark — intentionally NOT green-tinted, so it reads
+// clearly as night mode and stays distinct from the warm-green nature theme.
 export const darkTheme: ThemeColors = {
-  background: '#090D0A',      // Obsidian forest dark
-  surface: '#111713',         // Slate dark green surface cards
-  surfaceSecondary: '#19221C',// Highlight elements in dark cards
-  surfaceTertiary: '#222F27', // Subtle dark card separations
-  primary: '#34D399',         // Glowing emerald mint
+  background: '#0B0F12',      // Cool near-black charcoal
+  surface: '#151A1E',         // Neutral slate surface cards
+  surfaceSecondary: '#1E252A',// Highlight elements in dark cards
+  surfaceTertiary: '#2A333A', // Subtle dark card separations
+  primary: '#34D399',         // Glowing emerald mint accent (brand)
   primaryLight: '#6EE7B7',    // Light mint
   primaryDark: '#059669',     // Deeper mint green
-  text: '#ECFDF5',            // Soft bright off-white mint
-  textSecondary: '#8E9E99',   // Light dust sage
-  textMuted: '#4E5F5A',       // Dim charcoal sage
-  border: '#223027',          // Slate organic dark border
-  borderLight: '#151E19',     // Thin dark separation
-  tabBar: '#111713',          // Flat dark tabbar
-  header: '#090D0A',          // Dark header matching screen
+  text: '#ECF1F4',            // Cool soft off-white
+  textSecondary: '#94A1A8',   // Cool slate gray
+  textMuted: '#566169',       // Dim slate
+  border: '#2A343B',          // Neutral slate border
+  borderLight: '#1A2126',     // Thin dark separation
+  tabBar: '#151A1E',          // Flat dark tabbar
+  header: '#0B0F12',          // Dark header matching screen
   urgent: '#F87171',          // Coral pink-red
   warning: '#FBBF24',         // Warm sun amber
   shelf: '#8C6239',           // Rich walnut wood
   shelfBorder: '#604324',      // Deep wood outline
   shelfSupport: '#4A321A',    // Iron support
-  inputBg: '#111713',         // Dark inputs
-  chipBg: '#19221C',          // Slate dark chips
+  inputBg: '#151A1E',         // Dark inputs
+  chipBg: '#1E252A',          // Slate dark chips
   chipActiveBg: '#34D399',    // Glowing mint active chip
   modalOverlay: 'rgba(0,0,0,0.65)', // Deep shadow modal backdrop
+};
+
+// Warm, organic light-green theme — a "natural" feel distinct from the
+// crisp white light theme and the cool dark theme.
+export const natureTheme: ThemeColors = {
+  background: '#EAF2E6',      // Soft moss green
+  surface: '#F6FAF3',         // Warm off-white with green tint
+  surfaceSecondary: '#DEEAD7',// Sage highlight
+  surfaceTertiary: '#CCDFC3', // Deeper moss separations
+  primary: '#2E6B4F',         // Rich forest green
+  primaryLight: '#3FA66B',    // Fresh leaf green
+  primaryDark: '#1C4633',     // Deep pine
+  text: '#16271C',            // Deep forest charcoal
+  textSecondary: '#3D5446',   // Mossy gray-green
+  textMuted: '#7B927F',       // Soft sage
+  border: '#CFE0C6',          // Natural moss border
+  borderLight: '#DEEAD7',     // Thin sage separator
+  tabBar: '#F6FAF3',          // Warm tabbar
+  header: '#EAF2E6',          // Header matching screen
+  urgent: '#D7503E',          // Earthy terracotta red
+  warning: '#E0992E',         // Warm honey amber
+  shelf: '#B98C57',           // Natural walnut wood
+  shelfBorder: '#8F6A3D',      // Wood shadow
+  shelfSupport: '#6E4F2A',    // Dark wood bracket
+  inputBg: '#FFFFFF',         // Clean input field
+  chipBg: '#DEEAD7',          // Sage chip background
+  chipActiveBg: '#2E6B4F',    // Forest active chip
+  modalOverlay: 'rgba(22,39,28,0.35)', // Soft mossy dim
 };
