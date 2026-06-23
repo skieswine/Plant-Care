@@ -82,27 +82,27 @@ export const darkTheme: ThemeColors = {
 // Warm, organic light-green theme — a "natural" feel distinct from the
 // crisp white light theme and the cool dark theme.
 export const natureTheme: ThemeColors = {
-  background: '#EAF2E6',      // Soft moss green
-  surface: '#F6FAF3',         // Warm off-white with green tint
-  surfaceSecondary: '#DEEAD7',// Sage highlight
-  surfaceTertiary: '#CCDFC3', // Deeper moss separations
-  primary: '#2E6B4F',         // Rich forest green
+  background: '#D4E5C9',      // Clearly green sage/eucalyptus backdrop
+  surface: '#E4F0DA',         // Green-tinted cards (NOT white) — distinct from light theme
+  surfaceSecondary: '#C7DCB6',// Deeper sage highlight
+  surfaceTertiary: '#B2CE9C', // Mossy separations
+  primary: '#256B47',         // Rich forest green
   primaryLight: '#3FA66B',    // Fresh leaf green
-  primaryDark: '#1C4633',     // Deep pine
-  text: '#16271C',            // Deep forest charcoal
-  textSecondary: '#3D5446',   // Mossy gray-green
-  textMuted: '#7B927F',       // Soft sage
-  border: '#CFE0C6',          // Natural moss border
-  borderLight: '#DEEAD7',     // Thin sage separator
-  tabBar: '#F6FAF3',          // Warm tabbar
-  header: '#EAF2E6',          // Header matching screen
-  urgent: '#D7503E',          // Earthy terracotta red
-  warning: '#E0992E',         // Warm honey amber
+  primaryDark: '#163F2A',     // Deep pine
+  text: '#13251A',            // Deep forest charcoal
+  textSecondary: '#395344',   // Mossy gray-green
+  textMuted: '#6C8A6F',       // Soft sage
+  border: '#AEC99A',          // Natural moss border
+  borderLight: '#C7DCB6',     // Sage separator
+  tabBar: '#E4F0DA',          // Green-tinted tabbar
+  header: '#D4E5C9',          // Header matching screen
+  urgent: '#CE4A36',          // Earthy terracotta red
+  warning: '#D88E26',         // Warm honey amber
   shelf: '#B98C57',           // Natural walnut wood
   shelfBorder: '#8F6A3D',      // Wood shadow
   shelfSupport: '#6E4F2A',    // Dark wood bracket
-  inputBg: '#FFFFFF',         // Clean input field
-  chipBg: '#DEEAD7',          // Sage chip background
-  chipActiveBg: '#2E6B4F',    // Forest active chip
-  modalOverlay: 'rgba(22,39,28,0.35)', // Soft mossy dim
+  inputBg: '#F1F8EA',         // Soft green-white input
+  chipBg: '#C7DCB6',          // Sage chip background
+  chipActiveBg: '#256B47',    // Forest active chip
+  modalOverlay: 'rgba(19,37,26,0.4)', // Mossy dim
 };

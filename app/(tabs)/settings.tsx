@@ -153,8 +153,8 @@ export default function SettingsScreen() {
               onPress={() => setTheme('nature')}
               activeOpacity={0.8}
             >
-              <View style={[s.themeIconWrap, { backgroundColor: theme === 'nature' ? 'rgba(255,255,255,0.2)' : 'rgba(46, 107, 79, 0.15)' }]}>
-                <Ionicons name="leaf" size={22} color={theme === 'nature' ? '#fff' : '#2E6B4F'} />
+              <View style={[s.themeIconWrap, { backgroundColor: theme === 'nature' ? 'rgba(255,255,255,0.2)' : 'rgba(37, 107, 71, 0.15)' }]}>
+                <Ionicons name="leaf" size={22} color={theme === 'nature' ? '#fff' : '#256B47'} />
               </View>
               <Text style={[s.themeLabel, theme === 'nature' && s.themeLabelActive]}>
                 {t('settings.themeNature')}
@@ -280,7 +280,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.primaryDark,
     },
     themeOptionActiveNature: {
-      backgroundColor: '#2E6B4F',
+      backgroundColor: '#256B47',
     },
     themeIconWrap: {
       width: 44,
