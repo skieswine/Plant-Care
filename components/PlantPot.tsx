@@ -15,7 +15,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { Plant } from '../store/types';
-import { getPlantDisplayName } from '../store/useAppStore';
+import { getPlantDisplayName, useAppStore } from '../store/useAppStore';
 import { CountdownBadge } from './CountdownBadge';
 import { wateringStatusColor } from '../utils/dateUtils';
 import { useTheme } from '../hooks/useTheme';
@@ -87,6 +87,7 @@ export function PlantPot({ plant, onPress }: Props) {
   const statusColor = wateringStatusColor(plant.nextWateringDate);
   const scale = useSharedValue(1);
   const { colors: themeColors } = useTheme();
+  const language = useAppStore((s) => s.language);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -123,7 +124,7 @@ export function PlantPot({ plant, onPress }: Props) {
 
         {/* Назва */}
         <Text style={s.name} numberOfLines={1}>
-          {getPlantDisplayName(plant)}
+          {getPlantDisplayName(plant, language)}
         </Text>
 
         {/* Бейдж таймера */}

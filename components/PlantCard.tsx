@@ -73,7 +73,7 @@ export function PlantCard({ plantId, onClose }: Props) {
   const onPostpone = useCallback(
     (days: number) => {
       if (!plant) return;
-      const displayName = getPlantDisplayName(plant);
+      const displayName = getPlantDisplayName(plant, language);
       Alert.alert(
         t('plant.postponeTitle'),
         t('plant.postponeMessage', {
@@ -98,7 +98,7 @@ export function PlantCard({ plantId, onClose }: Props) {
 
   const onDelete = useCallback(() => {
     if (!plant) return;
-    const displayName = getPlantDisplayName(plant);
+    const displayName = getPlantDisplayName(plant, language);
     Alert.alert(
       t('plant.deleteTitle'),
       t('plant.deleteMessage', { name: displayName }),
@@ -236,7 +236,7 @@ export function PlantCard({ plantId, onClose }: Props) {
               </View>
             )}
             <View style={s.headerInfo}>
-              <Text style={s.plantName}>{getPlantDisplayName(plant)}</Text>
+              <Text style={s.plantName}>{getPlantDisplayName(plant, language)}</Text>
               {plant.species && plant.name && (
                 <Text style={s.speciesLabel}>🌿 {translateSpecies(plant.species, language)}</Text>
               )}

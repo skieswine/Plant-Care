@@ -16,6 +16,7 @@ import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { useAppStore } from '../../store/useAppStore';
 import { Plant, Room } from '../../store/types';
 import { getPlantDisplayName } from '../../store/useAppStore';
+import { translateSpecies } from '../../constants/plantSpecies';
 import { PlantCard } from '../../components/PlantCard';
 import { CountdownBadge } from '../../components/CountdownBadge';
 import { useNotifications } from '../../hooks/useNotifications';
@@ -45,7 +46,7 @@ export default function HomeScreen() {
   const season = useAppStore((s) => s.season);
   const setSeason = useAppStore((s) => s.setSeason);
   const { colors } = useTheme();
-  const { t } = useT();
+  const { t, language } = useT();
   const deleteRoom = useAppStore((s) => s.deleteRoom);
   const swipeableRefs = useRef<Map<string, Swipeable>>(new Map());
 
@@ -152,7 +153,7 @@ export default function HomeScreen() {
           <Ionicons name="water" size={18} color="#fff" />
           <Text style={s.urgentText}>
             {urgentPlants.length === 1
-              ? t('home.urgentSingle', { name: getPlantDisplayName(urgentPlants[0]) })
+              ? t('home.urgentSingle', { name: getPlantDisplayName(urgentPlants[0], language) })
               : t('home.urgentMultiple', { count: urgentPlants.length })}
           </Text>
         </Animated.View>
@@ -213,7 +214,7 @@ export default function HomeScreen() {
                 onPress={() => setSpeciesFilter(sp === speciesFilter ? null : sp)}
               >
                 <Text style={[s.filterChipSpeciesText, speciesFilter === sp && s.filterChipTextActive]}>
-                  🪴 {sp}
+                  🪴 {translateSpecies(sp, language)}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -262,7 +263,7 @@ export default function HomeScreen() {
                       ) : (
                         <View style={s.filteredPlantEmoji}><Text style={{ fontSize: 32 }}>🪴</Text></View>
                       )}
-                      <Text style={s.plantPreviewName} numberOfLines={1}>{getPlantDisplayName(plant)}</Text>
+                      <Text style={s.plantPreviewName} numberOfLines={1}>{getPlantDisplayName(plant, language)}</Text>
                       {room && (
                         <View style={s.filteredPlantRoomChip}>
                           <Text style={s.filteredPlantRoom} numberOfLines={1}>{room.emoji} {room.name}</Text>
@@ -348,9 +349,9 @@ export default function HomeScreen() {
                   ) : (
                     <Text style={{ fontSize: 36 }}>🪴</Text>
                   )}
-                  <Text style={s.plantPreviewName} numberOfLines={1}>{getPlantDisplayName(plant)}</Text>
+                  <Text style={s.plantPreviewName} numberOfLines={1}>{getPlantDisplayName(plant, language)}</Text>
                   {plant.species && plant.name && (
-                    <Text style={s.plantPreviewSpecies} numberOfLines={1}>{plant.species}</Text>
+                    <Text style={s.plantPreviewSpecies} numberOfLines={1}>{translateSpecies(plant.species, language)}</Text>
                   )}
                 </TouchableOpacity>
               ))}

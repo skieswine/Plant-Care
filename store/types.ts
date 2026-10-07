@@ -1,4 +1,5 @@
 // store/types.ts
+import { translateSpecies } from '../constants/plantSpecies';
 
 export type LightLevel = 'shade' | 'partial' | 'direct';
 export type Language = 'uk' | 'en' | 'de' | 'ru';
@@ -36,9 +37,11 @@ export interface Plant {
   createdAt: string;
 }
 
-/** Повертає відображувану назву рослини */
-export function getPlantDisplayName(plant: Plant): string {
-  return plant.name || plant.species || 'Рослина';
+/** Повертає відображувану назву рослини (вид перекладається на мову інтерфейсу) */
+export function getPlantDisplayName(plant: Plant, lang: Language = 'uk'): string {
+  if (plant.name) return plant.name;
+  if (plant.species) return translateSpecies(plant.species, lang);
+  return 'Рослина';
 }
 
 export interface Room {

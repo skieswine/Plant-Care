@@ -113,7 +113,7 @@ export default function CalendarScreen() {
             <View key={plant.id} style={s.urgentItem}>
               <Text style={{ fontSize: 20 }}>🌿</Text>
               <View style={{ flex: 1 }}>
-                <Text style={s.plantName}>{getPlantDisplayName(plant)}</Text>
+                <Text style={s.plantName}>{getPlantDisplayName(plant, language)}</Text>
               </View>
               <CountdownBadge nextWateringDate={plant.nextWateringDate} />
             </View>
@@ -164,7 +164,7 @@ export default function CalendarScreen() {
             {plantsForDate.map((plant) => (
               <View key={plant.id} style={s.detailItem}>
                 <Ionicons name="water-outline" size={16} color={colors.primaryLight} />
-                <Text style={s.detailPlantName}>{getPlantDisplayName(plant)}</Text>
+                <Text style={s.detailPlantName}>{getPlantDisplayName(plant, language)}</Text>
               </View>
             ))}
           </View>
@@ -176,7 +176,7 @@ export default function CalendarScreen() {
             {wateredOnDate.map((plant) => (
               <View key={plant.id} style={s.detailItem}>
                 <Ionicons name="checkmark-circle-outline" size={16} color={colors.primaryLight} />
-                <Text style={s.detailPlantName}>{getPlantDisplayName(plant)}</Text>
+                <Text style={s.detailPlantName}>{getPlantDisplayName(plant, language)}</Text>
               </View>
             ))}
           </View>

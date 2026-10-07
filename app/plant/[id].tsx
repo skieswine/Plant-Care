@@ -181,7 +181,7 @@ export default function EditPlantScreen() {
     >
       <Stack.Screen
         options={{
-          title: `✏️ ${getPlantDisplayName(plant)}`,
+          title: `✏️ ${getPlantDisplayName(plant, language)}`,
           headerStyle: { backgroundColor: colors.header },
           headerTintColor: colors.text,
         }}
